@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Codeprez</title>
+  <style>
+    section { border: 1px solid #ccc; margin: 1em; padding: 1em; }
+  </style>
+</head>
+<body>
+  <h1>Slides</h1>
+  <div id="slides"></div>
+
+  <script>
+    window.slidesAPI.loadSlides().then(slides => {
+      const container = document.getElementById('slides');
+      slides.forEach(html => {
+        const sec = document.createElement('div');
+        sec.innerHTML = html;
+        container.appendChild(sec);
+      });
+    });
+  </script>
+</body>
+</html>
