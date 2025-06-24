@@ -8,18 +8,26 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 function createWindow() {
-  const win = new BrowserWindow({
+  const mainWindow = new BrowserWindow({
     width: 1000,
     height: 700,
+    show: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true
     }
   });
-  win.loadFile('renderer/index.html');
+  mainWindow.loadFile('renderer/index.html');
 }
 
-app.whenReady().then(createWindow);
+//app.whenReady().then(createWindow);
+
+const launch = async () => {
+  await app.whenReady();
+  createWindow();
+}
+launch();
+
 
 ipcMain.handle('load-slides', async () => {
   return await parseMarkdown(
