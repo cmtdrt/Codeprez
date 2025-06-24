@@ -2,15 +2,17 @@
   "name": "codeprez",
   "version": "1.0.0",
   "description": "Codeprez est une application permettant de faire une présentation de diapositives du type Powerpoint ou Keynote à partir d'un fichier markdown",
-  "main": "main.js",
-  "type": "module",
+  "main": "electron/main.js",
   "scripts": {
-    "start": "electron .",
+    "dev": "cd frontend && npm run dev",
+    "electron": "electron electron/main.js",
+    "start": "node start.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "type": "commonjs",
   "dependencies": {
     "highlight.js": "^11.11.1",
     "markdown-it": "^14.1.0"

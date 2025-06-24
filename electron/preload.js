@@ -1,5 +1,5 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('slidesAPI', {
+contextBridge.exposeInMainWorld('electronAPI', {
   loadSlides: () => ipcRenderer.invoke('load-slides')
 });
