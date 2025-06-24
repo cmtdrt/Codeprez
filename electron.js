@@ -1,28 +1,41 @@
-import { app, BrowserWindow } from 'electron';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const { app, BrowserWindow, ipcMain } = require('electron');
+const path = require('path');
+const { parseMarkdown } = require('./parser/markdown-parser'); // <- corrigé ici
 
 function createWindow() {
+  console.log('🚀 Création de la fenêtre');
   const win = new BrowserWindow({
-    width: 800,
-    height: 600,
-    show: false,
+    width: 1280,
+    height: 800,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false
+    }
   });
 
-  if (process.env.NODE_ENV === 'development') {
-    // En dev, charge l'URL Vite
-    win.loadURL('http://localhost:5173');
-  } else {
-    // En prod, charge le build
-    win.loadFile(path.join(__dirname, 'dist/index.html'));
-  }
-
-  win.once('ready-to-show', () => {
-    win.show();
-    win.maximize();
-  });
+  win.loadURL('http://localhost:5173'); // ⚠️ en prod : utiliser .loadFile
+  win.webContents.openDevTools(); // utile en dev
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  console.log('✅ App prête');
+  createWindow();
+
+  ipcMain.handle('load-slides', async () => {
+    console.log("📥 Requête 'load-slides' reçue");
+    return await parseMarkdown(
+      path.join(__dirname, 'example-pres/presentation.md'),
+      path.join(__dirname, 'example-pres/config.json'),
+      path.join(__dirname, 'example-pres/assets')
+    );
+  });
+});
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') app.quit();
+});
+
+app.on('activate', () => {
+  if (BrowserWindow.getAllWindows().length === 0) createWindow();
+});
