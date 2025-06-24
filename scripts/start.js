@@ -1,32 +1,60 @@
 import { spawn } from 'child_process';
 
-const vite = spawn('npm', ['run', 'dev'], { stdio: ['ignore', 'pipe', 'pipe'] });
+const isWindows = process.platform === 'win32';
+const npmCmd = isWindows ? 'npm.cmd' : 'npm';
+const mode = process.argv[2] === 'prod' ? 'production' : 'development';
 
-let electronStarted = false;
+console.log(`🚀 Lancement en mode ${mode.toUpperCase()}`);
 
-vite.stdout.on('data', (data) => {
-  const str = data.toString();
-  process.stdout.write(str);
+function startElectron(env = {}) {
+  console.log('🚀 Lancement d\'Electron...');
 
-  // On attend que Vite affiche "ready in" pour lancer Electron
-  if (!electronStarted && str.includes('ready in')) {
-    electronStarted = true;
-    // On passe NODE_ENV=development pour Electron
-    const electron = spawn('npm', ['run', 'electron:start'], {
-      stdio: 'inherit',
-      env: { ...process.env, NODE_ENV: 'development' }
-    });
+  const electronCmd = isWindows ? '.\\node_modules\\.bin\\electron.cmd' : 'electron';
+  const args = ['.'];
 
-    electron.on('close', (code) => {
-      process.exit(code);
-    });
-  }
-});
+  const electron = spawn(electronCmd, args, {
+    shell: true,
+    stdio: 'inherit',
+    env: {
+      ...process.env,
+      NODE_ENV: mode,
+      ...env
+    }
+  });
 
-vite.stderr.on('data', (data) => {
-  process.stderr.write(data.toString());
-});
+  electron.on('close', (code) => {
+    console.log(`🔴 Electron fermé (code ${code})`);
+    process.exit(code);
+  });
 
-vite.on('close', (code) => {
-  if (!electronStarted) process.exit(code);
-});
+  electron.on('error', (err) => {
+    console.error('❌ Erreur Electron:', err);
+  });
+}
+
+if (mode === 'production') {
+  startElectron();
+} else {
+  const vite = spawn(npmCmd, ['run', 'dev'], { shell: true, stdio: ['pipe', 'pipe', 'pipe'] });
+  let buffer = '';
+
+  vite.stdout.on('data', (data) => {
+    const str = data.toString();
+    process.stdout.write(str);
+    buffer += str;
+
+    if (buffer.includes('http://localhost:5173') && !global.electronStarted) {
+      global.electronStarted = true;
+      startElectron({ VITE_DEV_SERVER_URL: 'http://localhost:5173' });
+    }
+  });
+
+  vite.stderr.on('data', (data) => {
+    process.stderr.write(data.toString());
+  });
+
+  vite.on('close', (code) => {
+    console.log('🔴 Vite fermé');
+    process.exit(code);
+  });
+}
