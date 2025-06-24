@@ -16,7 +16,13 @@ const slides = ref([])
 
 onMounted(async () => {
   try {
-    slides.value = await window.electronAPI.loadSlides()
+    if (window?.electronAPI?.loadSlides) {
+      slides.value = await window.electronAPI.loadSlides()
+    } else {
+      slides.value = [
+        `<section><h2>Vue dans navigateur</h2><p>Aucune slide chargée automatiquement.</p></section>`
+      ]
+    }
   } catch (err) {
     slides.value = [`<section><pre>${err.message}</pre></section>`]
   }

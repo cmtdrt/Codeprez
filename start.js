@@ -1,6 +1,6 @@
-// start.js
 const { spawn } = require('child_process');
 
+// Lancer Vite (frontend)
 const vite = spawn('npm', ['run', 'dev'], {
   cwd: './frontend',
   shell: true,
@@ -14,11 +14,13 @@ vite.on('close', (code) => {
   }
 });
 
-// Attendre quelques secondes avant de lancer Electron (ou améliore avec wait-on)
+// ⏱️ Attente de 3 sec pour laisser Vite démarrer (ou utiliser "wait-on" si besoin)
 setTimeout(() => {
+  // 👉 Important : forcer le mode dev pour Electron
   const electron = spawn('npm', ['run', 'electron'], {
     shell: true,
     stdio: 'inherit',
+    env: { ...process.env, NODE_ENV: 'development' },
   });
 
   electron.on('close', (code) => {
@@ -27,4 +29,4 @@ setTimeout(() => {
       process.exit(code);
     }
   });
-}, 3000); // ⏱️ Attente simple de 3 sec (à ajuster)
+}, 3000);
