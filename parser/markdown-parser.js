@@ -1,8 +1,8 @@
+// parser/markdown-parser.js (version CommonJS)
 const fs = require('fs');
 const MarkdownIt = require('markdown-it');
 const hljs = require('highlight.js');
 
-// Initialisation du parser Markdown avec coloration syntaxique
 const md = new MarkdownIt({
   highlight: (str, lang) => {
     if (lang && hljs.getLanguage(lang)) {
@@ -16,16 +16,13 @@ const md = new MarkdownIt({
   }
 });
 
-// Fonction principale d'analyse
 function parseMarkdown(mdPath, configPath) {
   try {
     const mdContent = fs.readFileSync(mdPath, 'utf-8');
-    const configContent = fs.readFileSync(configPath, 'utf-8');
-    const config = JSON.parse(configContent);
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
 
     const slides = [];
 
-    // Slide d’intro
     slides.push(`
       <section class="slide">
         <h1>${config.title}</h1>
@@ -34,7 +31,6 @@ function parseMarkdown(mdPath, configPath) {
       </section>
     `);
 
-    // Découpe des slides à partir de ---
     const rawSections = mdContent.split(/\n\s*---\s*\n/g);
 
     for (const section of rawSections) {
@@ -44,9 +40,7 @@ function parseMarkdown(mdPath, configPath) {
           ${html}
         </section>
       `);
-    }
-
-    return slides;
+    }    return slides;
   } catch (err) {
     console.error('Erreur analyse markdown :', err);
     return [`<section><pre>Erreur : ${err.message}</pre></section>`];

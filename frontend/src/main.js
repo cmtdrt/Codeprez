@@ -1,4 +1,5 @@
 import './assets/main.css'
+import 'highlight.js/styles/github-dark.css' // Thème GitHub Dark pour la coloration syntaxique
 
 import { createApp } from 'vue'
 import App from './App.vue'
