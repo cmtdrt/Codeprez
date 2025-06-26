@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -9,6 +9,11 @@ function createWindow() {
     width: 800,
     height: 600,
     show: false,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false
+    }
   });
 
   if (process.env.NODE_ENV === 'development') {
@@ -25,4 +30,13 @@ function createWindow() {
   });
 }
 
+ipcMain.handle('select-folder', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openDirectory']
+  });
+  if (result.canceled || !result.filePaths.length) return null;
+  return result.filePaths[0];
+});
+
 app.whenReady().then(createWindow);
+

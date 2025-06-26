@@ -2,19 +2,24 @@
   "name": "vue-electron",
   "private": true,
   "version": "0.0.0",
-  "main": "electron.js",
+  "main": "electron/electron.js",
   "type": "module",
   "scripts": {
-  "dev": "vite --port 5173",
-  "build": "vite build",
-  "start": "node scripts/start.js",
-  "preview": "vite preview",
-  "electron": "electron .",
-  "electron:start": "electron ."
+    "dev": "vite --port 5173",
+    "build": "vite build",
+    "start": "node scripts/start.js",
+    "preview": "vite preview",
+    "electron": "electron .",
+    "electron:start": "electron ."
   },
   "dependencies": {
+    "archiver": "^7.0.1",
     "electron": "^36.5.0",
-    "vue": "^3.5.13"
+    "file-saver": "^2.0.5",
+    "jszip": "^3.10.1",
+    "unzipper": "^0.12.3",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.1"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.3",
