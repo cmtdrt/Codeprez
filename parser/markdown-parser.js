@@ -1,10 +1,10 @@
 // parser/markdown-parser.js
-const fs = require('fs');
-const path = require('path');
-const MarkdownIt = require('markdown-it');
-const hljs = require('highlight.js');
+import fs from 'fs';
+import path from 'path';
+import MarkdownIt from 'markdown-it';
+import hljs from 'highlight.js';
 
-function parseMarkdown(mdPath, configPath, assetsPath) {
+export function parseMarkdown(mdPath, configPath, assetsPath) {
   const mdFile = fs.readFileSync(mdPath, 'utf-8');
   const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
 
@@ -26,7 +26,3 @@ function parseMarkdown(mdPath, configPath, assetsPath) {
 
   return slides;
 }
-
-module.exports = {
-  parseMarkdown
-};

@@ -1,60 +1,71 @@
+// scripts/start.js
 import { spawn } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { parseMarkdown } from '../parser/markdown-parser.js';
 
-const isWindows = process.platform === 'win32';
-const npmCmd = isWindows ? 'npm.cmd' : 'npm';
-const mode = process.argv[2] === 'prod' ? 'production' : 'development';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const markdownPath = path.join(__dirname, '../slides.md');
 
-console.log(`🚀 Lancement en mode ${mode.toUpperCase()}`);
+console.log('📄 Lecture de slides.md...');
 
-function startElectron(env = {}) {
-  console.log('🚀 Lancement d\'Electron...');
-
-  const electronCmd = isWindows ? '.\\node_modules\\.bin\\electron.cmd' : 'electron';
-  const args = ['.'];
-
-  const electron = spawn(electronCmd, args, {
-    shell: true,
-    stdio: 'inherit',
-    env: {
-      ...process.env,
-      NODE_ENV: mode,
-      ...env
-    }
-  });
-
-  electron.on('close', (code) => {
-    console.log(`🔴 Electron fermé (code ${code})`);
-    process.exit(code);
-  });
-
-  electron.on('error', (err) => {
-    console.error('❌ Erreur Electron:', err);
-  });
+try {
+  const raw = fs.readFileSync(markdownPath, 'utf-8');
+  const slides = parseMarkdown(raw);
+  console.log(`✅ ${slides.length} slides détectées`);
+} catch (err) {
+  console.error('❌ Erreur lors du parsing de slides.md :', err.message);
+  process.exit(1);
 }
 
-if (mode === 'production') {
-  startElectron();
-} else {
-  const vite = spawn(npmCmd, ['run', 'dev'], { shell: true, stdio: ['pipe', 'pipe', 'pipe'] });
-  let buffer = '';
+const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 
-  vite.stdout.on('data', (data) => {
-    const str = data.toString();
-    process.stdout.write(str);
-    buffer += str;
+console.log('🚀 Démarrage du serveur Vite...');
 
-    if (buffer.includes('http://localhost:5173') && !global.electronStarted) {
-      global.electronStarted = true;
-      startElectron({ VITE_DEV_SERVER_URL: 'http://localhost:5173' });
-    }
-  });
+const vite = spawn(npmCmd, ['run', 'dev'], {
+  shell: true,
+  stdio: ['ignore', 'pipe', 'pipe'],
+});
 
-  vite.stderr.on('data', (data) => {
-    process.stderr.write(data.toString());
-  });
+let buffer = '';
+let electronStarted = false;
 
-  vite.on('close', (code) => {
-    console.log('🔴 Vite fermé');
+vite.stdout.on('data', (data) => {
+  const str = data.toString();
+  process.stdout.write(str);
+  buffer += str;
+
+  const match = buffer.match(/http:\/\/localhost:\d+/);
+  if (match && !electronStarted) {
+    const viteUrl = match[0];
+    console.log(`✅ Vite est prêt sur ${viteUrl}, lancement d'Electron...`);
+    electronStarted = true;
+
+    const electron = spawn(npmCmd, ['run', 'electron:start'], {
+      shell: true,
+      stdio: 'inherit',
+      env: {
+        ...process.env,
+        NODE_ENV: 'development',
+        VITE_DEV_SERVER_URL: viteUrl,
+      },
+    });
+
+    electron.on('close', (code) => {
+      console.log(`🔴 Electron fermé avec le code ${code}`);
+      process.exit(code);
+    });
+  }
+});
+
+vite.stderr.on('data', (data) => {
+  process.stderr.write(data.toString());
+});
+
+vite.on('close', (code) => {
+  if (!electronStarted) {
+    console.error('❌ Vite s\'est fermé avant le démarrage d\'Electron');
     process.exit(code);
-  });
-}
+  }
+});
