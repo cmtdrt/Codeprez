@@ -1,218 +1,208 @@
-<template>
-  <div class="slides-container">
-    <div v-if="loading" class="loading">Chargement des slides...</div>
-    <div v-else-if="error" class="error">
-      <h2>Erreur</h2>
-      <p>{{ error }}</p>
-    </div>
-    <div
-      v-else
-      v-for="(slide, index) in slides"
-      :key="index"
-      class="slide"
-      v-html="slide"
-    ></div>
-  </div>
-</template>
+
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 
+// Variables simples
 const slides = ref([])
 const loading = ref(true)
 const error = ref(null)
+const presentationMode = ref(false)
+const currentSlideIndex = ref(0)
 
-onMounted(async () => {
+// Calcul simple
+const currentSlide = computed(() => slides.value[currentSlideIndex.value] || '')
+
+// Fonctions simples
+const startPresentation = () => {
+  presentationMode.value = true
+  currentSlideIndex.value = 0
+}
+
+const startPresentationAt = (index) => {
+  presentationMode.value = true
+  currentSlideIndex.value = index
+}
+
+const exitPresentation = () => {
+  presentationMode.value = false
+}
+
+const nextSlide = () => {
+  if (currentSlideIndex.value < slides.value.length - 1) {
+    currentSlideIndex.value++
+  }
+}
+
+const prevSlide = () => {
+  if (currentSlideIndex.value > 0) {
+    currentSlideIndex.value--
+  }
+}
+
+// Chargement simple
+const loadSlides = async () => {
   try {
-    // Essayer d'abord l'API Electron
     if (window?.electronAPI?.loadSlides) {
-      console.log('Mode Electron détecté, chargement via electronAPI')
       const result = await window.electronAPI.loadSlides()
+      slides.value = result.slides || []
       
-      // Le parser renvoie maintenant un objet avec slides et customCSS
-      if (result && typeof result === 'object' && result.slides) {
-        slides.value = result.slides
-        
-        // Charger le CSS personnalisé si disponible
-        if (result.customCSS) {
-          loadCustomCSS(result.customCSS)
-        }
-      } else {
-        // Compatibilité avec l'ancien format (array de slides)
-        slides.value = Array.isArray(result) ? result : []
+      if (result.customCSS) {
+        const style = document.createElement('style')
+        style.textContent = result.customCSS
+        document.head.appendChild(style)
       }
-      
-      // Configurer l'écoute des sorties de commandes en temps réel
-      setupCommandExecution()
     } else {
-      // Charger le CSS personnalisé en mode navigateur
-      await loadPresentationCSS()
-      
-      // Sinon, utiliser l'API REST (mode navigateur)
-      console.log('Mode navigateur détecté, chargement via API REST')
-      const response = await fetch('/api/slides')
-      
-      if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`)
-      }
-      
-      const data = await response.json()
-      
-      if (data.error) {
-        throw new Error(data.error)
-      }
-      
-      slides.value = data.slides || []
-      
-      if (slides.value.length === 0) {
-        error.value = "Aucune slide trouvée. Créez un fichier example-pres/presentation.md pour commencer."
-      }
+      slides.value = [
+        '<section><h1>Slide 1</h1><p>Test</p></section>',
+        '<section><h1>Slide 2</h1><p>Test 2</p></section>'
+      ]
     }
   } catch (err) {
-    console.error('Erreur lors du chargement des slides:', err)
     error.value = err.message
   } finally {
     loading.value = false
   }
+}
+
+// Clavier simple
+const handleKeydown = (event) => {
+  if (!presentationMode.value) return
+  
+  if (event.key === 'ArrowRight' || event.key === ' ') {
+    nextSlide()
+  } else if (event.key === 'ArrowLeft') {
+    prevSlide()
+  } else if (event.key === 'Escape') {
+    exitPresentation()
+  }
+}
+
+// Démarrage
+onMounted(() => {
+  loadSlides()
+  document.addEventListener('keydown', handleKeydown)
 })
-
-// Configuration de l'exécution de commandes (mode Electron)
-function setupCommandExecution() {
-  if (!window?.electronAPI?.executeCommand) return;
-  
-  // Fonction globale pour exécuter une commande (appelée depuis le HTML)
-  window.executeCommand = async (commandId, command) => {
-    console.log('Exécution de la commande:', command);
-    
-    const outputDiv = document.getElementById(`output_${commandId}`);
-    const outputContent = outputDiv?.querySelector('.output-content');
-    const executeBtn = document.querySelector(`[onclick*="${commandId}"]`);
-    
-    if (!outputDiv || !outputContent) {
-      console.error('Éléments de sortie non trouvés pour:', commandId);
-      return;
-    }
-    
-    // Afficher la zone de sortie et désactiver le bouton
-    outputDiv.style.display = 'block';
-    if (executeBtn) {
-      executeBtn.disabled = true;
-      executeBtn.textContent = '⏳ Exécution...';
-    }
-    
-    // Vider la sortie précédente
-    outputContent.textContent = '';
-    
-    // Écouter les sorties en temps réel
-    const outputHandler = (event, data) => {
-      if (data.type === 'stdout') {
-        outputContent.textContent += data.data;
-      } else if (data.type === 'stderr') {
-        outputContent.textContent += `[ERREUR] ${data.data}`;
-      }
-      // Auto-scroll vers le bas
-      outputContent.scrollTop = outputContent.scrollHeight;
-    };
-    
-    window.electronAPI.onCommandOutput(outputHandler);
-    
-    try {
-      // Exécuter la commande
-      const result = await window.electronAPI.executeCommand(command);
-      
-      // Arrêter d'écouter les sorties
-      window.electronAPI.removeCommandOutputListener(outputHandler);
-      
-      // Afficher le résultat final
-      if (!result.success) {
-        outputContent.textContent += `\n[TERMINÉ] Code de sortie: ${result.code}`;
-        if (result.error) {
-          outputContent.textContent += `\nErreur: ${result.error}`;
-        }
-      } else {
-        outputContent.textContent += `\n[TERMINÉ] Commande exécutée avec succès`;
-      }
-      
-    } catch (error) {
-      console.error('Erreur lors de l\'exécution:', error);
-      outputContent.textContent += `\n[ERREUR] ${error.message}`;
-    } finally {
-      // Réactiver le bouton
-      if (executeBtn) {
-        executeBtn.disabled = false;
-        executeBtn.textContent = '▶ Exécuter';
-      }
-    }
-  };
-}
-
-// Fonction pour charger le CSS personnalisé (mode Electron et navigateur)
-function loadCustomCSS(cssContent) {
-  // Créer ou mettre à jour l'élément style pour le CSS de la présentation
-  let styleEl = document.getElementById('presentation-style')
-  if (!styleEl) {
-    styleEl = document.createElement('style')
-    styleEl.id = 'presentation-style'
-    document.head.appendChild(styleEl)
-  }
-  styleEl.textContent = cssContent
-  
-  console.log('CSS de présentation chargé')
-}
-
-// Fonction pour charger le CSS de la présentation (mode navigateur uniquement)
-async function loadPresentationCSS() {
-  try {
-    const response = await fetch('/api/presentation-style.css')
-    if (response.ok) {
-      const cssContent = await response.text()
-      loadCustomCSS(cssContent)
-      console.log('CSS de présentation chargé (mode navigateur)')
-    } else {
-      console.warn('Aucun CSS de présentation trouvé, utilisation du fallback')
-    }
-  } catch (error) {
-    console.warn('Impossible de charger le CSS de présentation:', error)
-  }
-}
 </script>
 
+<template>
+  <div class="app">
+    <!-- Vue d'ensemble simple -->
+    <div v-if="!presentationMode" class="overview">
+      <h1>CodePrez</h1>
+      <button @click="startPresentation">Commencer</button>
+      
+      <div v-if="loading">Chargement...</div>
+      <div v-if="error">Erreur: {{ error }}</div>
+      
+      <div class="slides-list">
+        <div v-for="(slide, index) in slides" :key="index" @click="startPresentationAt(index)" class="slide-item">
+          Slide {{ index + 1 }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Présentation simple -->
+    <div v-else class="presentation">
+      <div v-html="currentSlide"></div>
+      
+      <div class="controls">
+        <button @click="prevSlide">←</button>
+        <span>{{ currentSlideIndex + 1 }} / {{ slides.length }}</span>
+        <button @click="nextSlide">→</button>
+        <button @click="exitPresentation">Quitter</button>
+      </div>
+    </div>
+  </div>
+</template>
+
 <style scoped>
-/* Conteneur complètement neutre */
-.slides-container {
-  margin: 0;
-  padding: 0;
+.app {
   width: 100vw;
   height: 100vh;
-  background: transparent;
+  background: #000;
+  color: white;
+  font-family: Arial, sans-serif;
 }
 
-.loading, .error {
+.overview {
+  padding: 20px;
   text-align: center;
-  padding: 2rem;
-  color: #fff;
-  background: #2a2a2a;
-  border-radius: 8px;
-  border: 1px solid #444;
-  margin: 2rem;
 }
 
-.error {
-  background: #722;
-  border-color: #f44;
+.overview h1 { color: white; }
+
+.overview button, .slide-item {
+  background: #007acc;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: inline-block;
 }
 
-/* Conteneur de slide complètement neutre */
-.slide {
-  margin: 0;
-  padding: 0;
+.presentation {
   width: 100%;
   height: 100%;
+  position: relative;
+}
+
+.controls {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.8);
+  padding: 10px;
+  border-radius: 5px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.controls button {
+  background: #007acc;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
 }
 </style>
 
 <style>
-/* Aucun style global par défaut - uniquement les styles de commandes */
+section {
+  width: 100vw;
+  height: 100vh;
+  padding: 40px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: auto;
+}
+</style>
+
+<style>
+/* Styles de fallback minimalistes uniquement si le CSS personnalisé ne se charge pas */
+section {
+  width: 100vw;
+  height: 100vh;
+  padding: 40px 60px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 1.3rem;
+  line-height: 1.6;
+  overflow: auto;
+}
 
 /* Styles pour les blocs de commandes - design simple et contrasté */
 .command-block {
@@ -224,6 +214,7 @@ async function loadPresentationCSS() {
   padding: 0 !important;
   overflow: hidden !important;
   font-family: Arial, sans-serif !important;
+  max-width: 90% !important;
 }
 
 .command-header {

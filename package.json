@@ -7,15 +7,17 @@
   "scripts": {
     "dev": "cd frontend && npm run dev",
     "build": "cd frontend && npm run build",
+    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && cross-env NODE_ENV=development electron electron/main.cjs\"",
+    "electron:build": "npm run build && cross-env NODE_ENV=production electron electron/main.cjs",
     "start": "node start.js",
     "start-simple": "node scripts/start-simple.js",
-    "preview": "cd frontend && npm run preview",
-    "electron": "electron electron/main.cjs",
-    "electron:start": "electron electron/main.cjs"
+    "preview": "cd frontend && npm run preview"
   },
   "dependencies": {
     "electron": "^36.5.0",
-    "vue": "^3.5.13"
+    "vue": "^3.5.13",
+    "markdown-it": "^14.0.0",
+    "highlight.js": "^11.9.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.3",

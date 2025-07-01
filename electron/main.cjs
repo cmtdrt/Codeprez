@@ -6,6 +6,11 @@ const { parseMarkdown } = require('../parser/markdown-parser.js');
 
 console.log('>> Electron app démarre');
 
+// Variables globales
+let mainWindow = null;
+const isDev = process.env.NODE_ENV === 'development';
+const viteServerUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173';
+
 // Enregistrer le protocole personnalisé pour les assets
 app.whenReady().then(() => {
   // Protocole pour servir les assets de présentation
@@ -25,32 +30,108 @@ app.whenReady().then(() => {
 
 function createWindow() {
   console.log('>> Création de la fenêtre Electron');
-  const win = new BrowserWindow({
+
+  mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
-      nodeIntegration: false
-      // Sécurité web réactivée - on utilise notre protocole personnalisé
-    }
+      nodeIntegration: false,
+      webSecurity: true // Sécurité activée
+    },
+    show: false // Ne pas afficher tant que ce n'est pas prêt
   });
 
-  win.loadURL('http://localhost:5173');
-  // win.webContents.openDevTools(); // DevTools désactivées - F12 pour les ouvrir manuellement
+  // Charger l'URL appropriée selon le mode
+  if (isDev) {
+    console.log('>> Mode développement - Chargement de Vite:', viteServerUrl);
+    mainWindow.loadURL(viteServerUrl);
+    // mainWindow.webContents.openDevTools(); // Décommenter pour debug
+  } else {
+    console.log('>> Mode production - Chargement du build');
+    const indexPath = path.join(__dirname, '../frontend/dist/index.html');
+    mainWindow.loadFile(indexPath);
+  }
+
+  // Afficher la fenêtre quand elle est prête
+  mainWindow.once('ready-to-show', () => {
+    console.log('>> Fenêtre prête à être affichée');
+    mainWindow.show();
+
+    // Envoyer un message à Vue pour confirmer la connexion
+    setTimeout(() => {
+      mainWindow.webContents.send('electron-ready', {
+        isDev,
+        platform: process.platform,
+        version: app.getVersion()
+      });
+    }, 1000);
+  });
+
+  // Gérer la fermeture de la fenêtre
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
+
+  return mainWindow;
 }
 
 app.whenReady().then(() => {
   console.log('>> app ready');
   createWindow();
 
+  // Gestionnaire pour charger les slides
   ipcMain.handle('load-slides', async () => {
     console.log('>> ipcMain: load-slides appelé');
-    return await parseMarkdown(
-      './example-pres/presentation.md',
-      './example-pres/config.json',
-      './example-pres/assets'
-    );
+    try {
+      const result = await parseMarkdown(
+        './example-pres/presentation.md',
+        './example-pres/config.json',
+        './example-pres/assets'
+      );
+      console.log('>> Slides chargées avec succès:', result.slides?.length || 0, 'slides');
+      return result;
+    } catch (error) {
+      console.error('>> Erreur lors du chargement des slides:', error);
+      throw error;
+    }
+  });
+
+  // Gestionnaire pour obtenir des informations sur l'app
+  ipcMain.handle('get-app-info', () => {
+    return {
+      platform: process.platform,
+      version: app.getVersion(),
+      isDev,
+      userDataPath: app.getPath('userData')
+    };
+  });
+
+  // Gestionnaire pour contrôler la fenêtre
+  ipcMain.handle('window-control', (event, action) => {
+    if (!mainWindow) return false;
+
+    switch (action) {
+      case 'minimize':
+        mainWindow.minimize();
+        return true;
+      case 'maximize':
+        if (mainWindow.isMaximized()) {
+          mainWindow.unmaximize();
+        } else {
+          mainWindow.maximize();
+        }
+        return true;
+      case 'close':
+        mainWindow.close();
+        return true;
+      case 'toggle-fullscreen':
+        mainWindow.setFullScreen(!mainWindow.isFullScreen());
+        return true;
+      default:
+        return false;
+    }
   });
 
   // Gestion de l'exécution de commandes
