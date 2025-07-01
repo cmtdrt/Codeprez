@@ -2,7 +2,9 @@ const { app, BrowserWindow, ipcMain, protocol } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const fs = require('fs');
-const { parseMarkdown } = require('../parser/markdown-parser.js');
+const os = require('os');
+const AdmZip = require('adm-zip');
+const { parseMarkdown } = require('../parser/markdown-parser.cjs');
 
 console.log('>> Electron app démarre');
 
@@ -10,6 +12,7 @@ console.log('>> Electron app démarre');
 let mainWindow = null;
 const isDev = process.env.NODE_ENV === 'development';
 const viteServerUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173';
+let tempPresentationPath = path.join(os.tmpdir(), 'codeprez-presentation');
 
 // Enregistrer le protocole personnalisé pour les assets
 app.whenReady().then(() => {
@@ -215,7 +218,84 @@ app.whenReady().then(() => {
     });
   });
 
+  // Gestionnaires IPC pour les fichiers ZIP
+  ipcMain.handle('process-zip-file', async (event, zipBuffer) => {
+    try {
+      // Créer le dossier temporaire
+      if (fs.existsSync(tempPresentationPath)) {
+        fs.rmSync(tempPresentationPath, { recursive: true, force: true });
+      }
+      fs.mkdirSync(tempPresentationPath, { recursive: true });
 
+      // Dézipper avec AdmZip
+      const zip = new AdmZip(Buffer.from(zipBuffer));
+      zip.extractAllTo(tempPresentationPath, true);
+
+      console.log('📦 Fichier ZIP dézippé dans:', tempPresentationPath);
+
+      return {
+        success: true,
+        tempPath: tempPresentationPath,
+        message: 'Fichier ZIP traité avec succès'
+      };
+    } catch (error) {
+      console.error('Erreur lors du traitement du ZIP:', error);
+      // Nettoyer en cas d'erreur
+      if (fs.existsSync(tempPresentationPath)) {
+        fs.rmSync(tempPresentationPath, { recursive: true, force: true });
+      }
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  });
+
+  ipcMain.handle('cleanup-temp-presentation', async () => {
+    try {
+      if (fs.existsSync(tempPresentationPath)) {
+        fs.rmSync(tempPresentationPath, { recursive: true, force: true });
+        console.log('🧹 Dossier temporaire nettoyé');
+      }
+      return { success: true };
+    } catch (error) {
+      console.error('Erreur lors du nettoyage:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('read-temp-file', async (event, fileName) => {
+    try {
+      const filePath = path.join(tempPresentationPath, fileName);
+      const content = fs.readFileSync(filePath, 'utf-8');
+      return content;
+    } catch (err) {
+      console.error('Erreur lecture fichier temporaire:', err);
+      return `Erreur lecture fichier : ${err.message}`;
+    }
+  });
+
+  ipcMain.handle('read-temp-dir', async (event, subDir = '') => {
+    try {
+      const dirPath = path.join(tempPresentationPath, subDir);
+      const items = fs.readdirSync(dirPath, { withFileTypes: true });
+      return items.map(item => ({
+        name: item.name,
+        isDirectory: item.isDirectory()
+      }));
+    } catch (err) {
+      console.error('Erreur lecture dossier temporaire:', err);
+      return [];
+    }
+  });
+
+  // Nettoyage à la fermeture de l'application
+  app.on('before-quit', () => {
+    if (fs.existsSync(tempPresentationPath)) {
+      fs.rmSync(tempPresentationPath, { recursive: true, force: true });
+      console.log('🧹 Nettoyage final du dossier temporaire');
+    }
+  });
 });
 
 // Gestion fermeture et relance (macOS friendly)

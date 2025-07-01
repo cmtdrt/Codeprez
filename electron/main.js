@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
+const AdmZip = require('adm-zip');
 const { parseMarkdown } = require('../parser/markdown-parser.cjs');
 
 console.log('>> Electron app démarre');
@@ -98,13 +99,11 @@ ipcMain.handle('process-zip-file', async (event, zipBuffer) => {
         }
         fs.mkdirSync(tempPresentationPath, { recursive: true });
 
-        // Sauvegarder le buffer ZIP dans un fichier temporaire
-        const zipPath = path.join(tempPresentationPath, 'temp.zip');
-        fs.writeFileSync(zipPath, Buffer.from(zipBuffer));
+        // Dézipper avec AdmZip
+        const zip = new AdmZip(Buffer.from(zipBuffer));
+        zip.extractAllTo(tempPresentationPath, true);
 
-        // Dézipper le fichier (nécessiterait une bibliothèque comme node-stream-zip)
-        // Pour l'instant, on retourne juste le succès
-        console.log('📦 Fichier ZIP traité:', zipPath);
+        console.log('📦 Fichier ZIP dézippé dans:', tempPresentationPath);
 
         return {
             success: true,
@@ -113,6 +112,10 @@ ipcMain.handle('process-zip-file', async (event, zipBuffer) => {
         };
     } catch (error) {
         console.error('Erreur lors du traitement du ZIP:', error);
+        // Nettoyer en cas d'erreur
+        if (fs.existsSync(tempPresentationPath)) {
+            fs.rmSync(tempPresentationPath, { recursive: true, force: true });
+        }
         return {
             success: false,
             error: error.message
