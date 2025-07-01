@@ -13,6 +13,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   readTempFile: (fileName) => ipcRenderer.invoke('read-temp-file', fileName),
   readTempDir: (subDir) => ipcRenderer.invoke('read-temp-dir', subDir),
 
+  // Exécution de commandes
+  executeCommand: (command) => ipcRenderer.invoke('execute-command', command),
+  onCommandOutput: (callback) => ipcRenderer.on('command-output', callback),
+  removeCommandOutputListener: (callback) => ipcRenderer.removeListener('command-output', callback),
+
   // Informations sur l'application
   getAppInfo: () => ipcRenderer.invoke('get-app-info'),
 

@@ -12,6 +12,8 @@ console.log('>> Electron app démarre');
 let mainWindow = null;
 const isDev = process.env.NODE_ENV === 'development';
 const viteServerUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173';
+// Variable pour stocker le dossier de présentation actuel
+let currentPresentationPath = path.join(__dirname, '../example-pres');
 let tempPresentationPath = path.join(os.tmpdir(), 'codeprez-presentation');
 
 // Enregistrer le protocole personnalisé pour les assets
@@ -19,7 +21,7 @@ app.whenReady().then(() => {
   // Protocole pour servir les assets de présentation
   protocol.registerFileProtocol('codeprez-asset', (request, callback) => {
     const url = request.url.substr(17); // Retire 'codeprez-asset://'
-    const assetPath = path.join(__dirname, '../example-pres/assets', url);
+    const assetPath = path.join(currentPresentationPath, 'assets', url);
 
     console.log('>> Asset demandé via protocole:', url, '→', assetPath);
 
@@ -86,7 +88,6 @@ app.whenReady().then(() => {
 
   // Gestionnaire pour charger les slides
   ipcMain.handle('load-slides', async () => {
-    console.log('>> ipcMain: load-slides appelé');
     try {
       const result = await parseMarkdown(
         './example-pres/presentation.md',
@@ -142,9 +143,8 @@ app.whenReady().then(() => {
     console.log('>> ipcMain: execute-command appelé:', command);
 
     return new Promise((resolve) => {
-      // Dossier d'exécution (env dans le dossier de présentation)
-      const envPath = path.resolve('./example-pres/env');
-      console.log('>> Exécution dans:', envPath);
+      // Dossier d'exécution (env dans le dossier de présentation actuel)
+      const envPath = path.join(currentPresentationPath, 'env');
 
       // Déterminer le shell selon l'OS
       const isWindows = process.platform === 'win32';
@@ -178,7 +178,6 @@ app.whenReady().then(() => {
       child.stderr.on('data', (data) => {
         const output = data.toString();
         stderr += output;
-        console.log('>> stderr:', output);
 
         // Envoyer les erreurs en temps réel
         if (!isComplete) {
@@ -231,7 +230,30 @@ app.whenReady().then(() => {
       const zip = new AdmZip(Buffer.from(zipBuffer));
       zip.extractAllTo(tempPresentationPath, true);
 
+      // Trouver le bon dossier de présentation (peut être dans un sous-dossier)
+      let actualPresentationPath = tempPresentationPath;
+      const items = fs.readdirSync(tempPresentationPath);
+
+      // Chercher s'il y a un dossier avec presentation.md à la racine
+      if (!fs.existsSync(path.join(tempPresentationPath, 'presentation.md'))) {
+        // Chercher dans les sous-dossiers
+        for (const item of items) {
+          const itemPath = path.join(tempPresentationPath, item);
+          if (fs.statSync(itemPath).isDirectory()) {
+            if (fs.existsSync(path.join(itemPath, 'presentation.md'))) {
+              actualPresentationPath = itemPath;
+              break;
+            }
+          }
+        }
+      }
+
+      // Mettre à jour le chemin de présentation actuel
+      currentPresentationPath = actualPresentationPath;
+
       console.log('📦 Fichier ZIP dézippé dans:', tempPresentationPath);
+      console.log('🔄 Chemin de présentation trouvé:', actualPresentationPath);
+      console.log('🔄 Chemin de présentation mis à jour vers:', currentPresentationPath);
 
       return {
         success: true,

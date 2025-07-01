@@ -137,6 +137,56 @@ onMounted(async () => {
   loadSlides()
   document.addEventListener('keydown', handleKeydown)
 })
+
+// Gestion de l'exécution de commandes
+window.executeCommand = async (commandId, command) => {
+  console.log('🚀 Exécution de la commande:', command);
+  
+  const outputElement = document.getElementById(`output_${commandId}`);
+  const contentElement = outputElement?.querySelector('.output-content');
+  
+  if (!outputElement || !contentElement) {
+    console.error('Éléments de sortie non trouvés');
+    return;
+  }
+  
+  // Afficher le bloc de sortie
+  outputElement.style.display = 'block';
+  contentElement.textContent = 'Exécution en cours...';
+  
+  try {
+    if (window?.electronAPI?.executeCommand) {
+      // Écouter les sorties en temps réel
+      const outputListener = (outputData) => {
+        if (outputData.type === 'stdout') {
+          contentElement.textContent += outputData.data;
+        } else if (outputData.type === 'stderr') {
+          contentElement.innerHTML += `<span style="color: red;">${outputData.data}</span>`;
+        }
+      };
+      
+      window.electronAPI.onCommandOutput(outputListener);
+      
+      // Exécuter la commande
+      const result = await window.electronAPI.executeCommand(command);
+      
+      // Nettoyer le listener
+      window.electronAPI.removeCommandOutputListener(outputListener);
+      
+      // Afficher le résultat final
+      if (result.success) {
+        contentElement.textContent = result.stdout || 'Commande exécutée avec succès';
+      } else {
+        contentElement.innerHTML = `<span style="color: red;">Erreur (code ${result.code}):\n${result.stderr}</span>`;
+      }
+    } else {
+      contentElement.innerHTML = '<span style="color: orange;">Exécution de commandes non disponible en mode navigateur</span>';
+    }
+  } catch (error) {
+    console.error('Erreur lors de l\'exécution:', error);
+    contentElement.innerHTML = `<span style="color: red;">Erreur: ${error.message}</span>`;
+  }
+};
 </script>
 <style scoped>
 .app {
