@@ -1,7 +1,6 @@
 <template>
-  <Slides />
+  <router-view  />
 </template>
 
 <script setup>
-import Slides from './components/Slides.vue'
 </script>

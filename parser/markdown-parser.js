@@ -1,7 +1,7 @@
 // parser/markdown-parser.js (version CommonJS)
-const fs = require('fs');
-const MarkdownIt = require('markdown-it');
-const hljs = require('highlight.js');
+import fs from 'fs';
+import MarkdownIt from 'markdown-it';
+import hljs from 'highlight.js';
 
 const md = new MarkdownIt({
   highlight: (str, lang) => {
@@ -16,7 +16,7 @@ const md = new MarkdownIt({
   }
 });
 
-function parseMarkdown(mdPath, configPath) {
+export function parseMarkdown(mdPath, configPath) {
   try {
     const mdContent = fs.readFileSync(mdPath, 'utf-8');
     const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
@@ -40,11 +40,10 @@ function parseMarkdown(mdPath, configPath) {
           ${html}
         </section>
       `);
-    }    return slides;
+    }    
+    return slides;
   } catch (err) {
     console.error('Erreur analyse markdown :', err);
     return [`<section><pre>Erreur : ${err.message}</pre></section>`];
   }
 }
-
-module.exports = { parseMarkdown };

@@ -3,13 +3,21 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Codeprez</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CodePrez</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
   <style>
-    section {
-      border: 1px solid #ccc;
-      margin: 1em;
-      padding: 1em;
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
     }
   </style>
   <meta http-equiv="Content-Security-Policy"
@@ -18,17 +26,39 @@
 </head>
 
 <body>
-  <h1>Slides</h1>
-  <div id="slides"></div>
-
+  <iframe src="http://localhost:5173" id="vue-app"></iframe>
   <script>
-    window.slidesAPI.loadSlides().then(slides => {
-      const container = document.getElementById('slides');
-      slides.forEach(html => {
-        const sec = document.createElement('div');
-        sec.innerHTML = html;
-        container.appendChild(sec);
-      });
+    // Script pour gérer la communication entre l'iframe et le preload
+    window.addEventListener('message', function(event) {
+      if (event.origin !== 'http://localhost:5173') return;
+      
+      // Transmettre les appels à l'API Electron
+      if (event.data.type === 'electronAPI') {
+        const { method, args, id } = event.data;
+        if (window.electronAPI && window.electronAPI[method]) {
+          window.electronAPI[method](...args)
+            .then(result => {
+              event.source.postMessage({
+                type: 'electronAPI-response',
+                id: id,
+                result: result
+              }, event.origin);
+            })
+            .catch(error => {
+              event.source.postMessage({
+                type: 'electronAPI-error',
+                id: id,
+                error: error.message
+              }, event.origin);
+            });
+        }
+      }
+    });
+    
+    // Exposer l'API Electron à l'iframe
+    window.addEventListener('load', function() {
+      const iframe = document.getElementById('vue-app');
+      iframe.contentWindow.electronAPI = window.electronAPI;
     });
   </script>
 </body>

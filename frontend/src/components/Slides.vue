@@ -1,5 +1,9 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="slides-container">
+    <button class="back-btn" @click="goBack" title="Retour">
+      <span class="back-arrow">&#8592;</span>
+    </button>
     <section
       v-for="(slide, index) in slides"
       :key="index"
@@ -11,61 +15,48 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const slides = ref([])
+const router = useRouter()
 
 onMounted(async () => {
-  try {
-    if (window?.electronAPI?.loadSlides) {
-      // Mode Electron - charger les slides depuis le backend
-      slides.value = await window.electronAPI.loadSlides()
+  await listAndLogFiles();
+  slides.value = [
+    `<section class="slide">
+      <h1>Slides chargées !</h1>
+      <p>Vérifie la console pour le contenu de tous les fichiers et dossiers.</p>
+    </section>`
+  ]
+});
+
+/**
+ * Lister les fichiers dans le dossier
+ * @param dir - Le dossier à lister
+ * @param prefix - Le préfixe à afficher
+ */
+async function listAndLogFiles(dir = '', prefix = '') {
+  // Lister les fichiers dans le dossier
+  const files = await window.electronAPI.readTempDir(dir);
+  for (const file of files) {
+    if (file.isDirectory) {
+      console.log(`${prefix}📁 ${file.name}/`);
+      await listAndLogFiles(pathJoin(dir, file.name), prefix + '  ');
     } else {
-      // Mode navigateur - essayer de charger depuis une API REST
-      try {
-        const response = await fetch('/api/slides')
-        if (response.ok) {
-          slides.value = await response.json()
-        } else {
-          throw new Error('API non disponible')
-        }
-      } catch (apiError) {
-        // Fallback vers les slides de démonstration si l'API n'est pas disponible
-        slides.value = [
-          `<section class="slide">
-            <h1>🎯 Codeprez - Mode Navigateur</h1>
-            <p><strong>Slides de démonstration</strong></p>
-            <p>Pour voir vos vraies slides, lancez l'application Electron avec <code>npm run start</code></p>
-          </section>`,
-          `<section class="slide">
-            <h2>📝 Fonctionnalités</h2>
-            <ul>
-              <li>Parse les fichiers Markdown</li>
-              <li>Coloration syntaxique du code</li>
-              <li>Interface Electron + Vue.js</li>
-              <li>Présentations style PowerPoint</li>
-            </ul>
-          </section>`,
-          `<section class="slide">
-            <h2>💻 Exemple de code</h2>
-            <pre><code class="hljs javascript">function helloWorld() {
-  console.log("Hello, Codeprez!");
-  return "Présentations Markdown";
-}</code></pre>
-            <p>Le code est automatiquement coloré !</p>
-          </section>`,
-          `<section class="slide">
-            <h2>🚀 Pour voir vos slides</h2>
-            <p>Lancez l'application complète avec :</p>
-            <pre><code class="hljs bash">npm run start</code></pre>
-            <p>Puis modifiez <code>example-pres/presentation.md</code> avec votre contenu.</p>
-          </section>`
-        ]
-      }
+      const content = await window.electronAPI.readTempFile(pathJoin(dir, file.name));
+      console.log(`${prefix}📄 ${file.name} :\n`, content);
     }
-  } catch (err) {
-    slides.value = [`<section class="slide"><h2>❌ Erreur</h2><pre>${err.message}</pre></section>`]
   }
-})
+}
+
+// Permet de joindre les chemins
+function pathJoin(...parts) {
+  return parts.filter(Boolean).join('/');
+}
+
+function goBack() {
+  router.back()
+}
 </script>
 
 <style>
@@ -126,5 +117,34 @@ onMounted(async () => {
 
 .slide code {
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+.back-btn {
+  position: absolute;
+  top: 2.2rem;
+  left: 2.2rem;
+  background: rgba(30,40,60,0.7);
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 2rem;
+  cursor: pointer;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.13);
+  transition: background 0.18s, transform 0.18s;
+  z-index: 10;
+}
+.back-btn:hover {
+  background: rgba(30,40,60,0.95);
+  transform: scale(1.08);
+}
+.back-arrow {
+  margin-bottom: 0.3rem;
+  font-size: 2rem;
+  line-height: 1;
 }
 </style>

@@ -5,8 +5,23 @@ export default createRouter({
   routes: [
     {
       path: '/',
+      name: 'landing-page',
+      component: () => import('@/components/LandingPage.vue')
+    },
+    {
+      path: '/insert-docs',
+      name: 'insert-docs',
+      component: () => import('@/components/InsertDocs.vue')
+    },
+    {
+      path: '/insert-zip',
+      name: 'insert-zip',
+      component: () => import('@/components/InsertZip.vue')
+    },
+    {
+      path: '/slides',
       name: 'slides',
-      component: () => import('@/components/Slides.vue') // ou le bon chemin vers ton composant principal
+      component: () => import('@/components/Slides.vue')
     }
   ]
 })

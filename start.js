@@ -1,4 +1,4 @@
-const { spawn } = require('child_process');
+import { spawn } from 'child_process';
 
 // Lancer Vite (frontend)
 const vite = spawn('npm', ['run', 'dev'], {

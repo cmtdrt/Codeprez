@@ -12,9 +12,11 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
+    "adm-zip": "^0.5.10",
     "highlight.js": "^11.11.1",
+    "jszip": "^3.10.1",
     "markdown-it": "^14.1.0"
   },
   "devDependencies": {
