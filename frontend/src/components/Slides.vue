@@ -5,13 +5,14 @@
       <h2>Erreur</h2>
       <p>{{ error }}</p>
     </div>
-    <div
-      v-else
-      v-for="(slide, index) in slides"
-      :key="index"
-      class="slide"
-      v-html="slide"
-    ></div>
+    <div v-else>
+      <div class="slide" v-html="slides[current]"></div>
+      <div class="nav">
+        <button @click="prev" :disabled="current === 0">Précédent</button>
+        <span>{{ current + 1 }} / {{ slides.length }}</span>
+        <button @click="next" :disabled="current === slides.length - 1">Suivant</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -21,134 +22,42 @@ import { onMounted, ref } from 'vue'
 const slides = ref([])
 const loading = ref(true)
 const error = ref(null)
+const current = ref(0)
+
+function prev() {
+  if (current.value > 0) current.value--
+}
+function next() {
+  if (current.value < slides.value.length - 1) current.value++
+}
 
 onMounted(async () => {
   try {
-    // Essayer d'abord l'API Electron
     if (window?.electronAPI?.loadSlides) {
-      console.log('Mode Electron détecté, chargement via electronAPI')
       const result = await window.electronAPI.loadSlides()
-      
-      // Le parser renvoie maintenant un objet avec slides et customCSS
-      if (result && typeof result === 'object' && result.slides) {
-        slides.value = result.slides
-        
-        // Charger le CSS personnalisé si disponible
-        if (result.customCSS) {
-          loadCustomCSS(result.customCSS)
-        }
-      } else {
-        // Compatibilité avec l'ancien format (array de slides)
-        slides.value = Array.isArray(result) ? result : []
+      slides.value = result && typeof result === 'object' && result.slides
+        ? result.slides
+        : Array.isArray(result) ? result : []
+      if (result && result.customCSS) {
+        loadCustomCSS(result.customCSS)
       }
-      
-      // Configurer l'écoute des sorties de commandes en temps réel
-      setupCommandExecution()
     } else {
-      // Charger le CSS personnalisé en mode navigateur
-      await loadPresentationCSS()
-      
-      // Sinon, utiliser l'API REST (mode navigateur)
-      console.log('Mode navigateur détecté, chargement via API REST')
       const response = await fetch('/api/slides')
-      
-      if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`)
-      }
-      
+      if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`)
       const data = await response.json()
-      
-      if (data.error) {
-        throw new Error(data.error)
-      }
-      
       slides.value = data.slides || []
-      
       if (slides.value.length === 0) {
         error.value = "Aucune slide trouvée. Créez un fichier example-pres/presentation.md pour commencer."
       }
     }
   } catch (err) {
-    console.error('Erreur lors du chargement des slides:', err)
     error.value = err.message
   } finally {
     loading.value = false
   }
 })
 
-// Configuration de l'exécution de commandes (mode Electron)
-function setupCommandExecution() {
-  if (!window?.electronAPI?.executeCommand) return;
-  
-  // Fonction globale pour exécuter une commande (appelée depuis le HTML)
-  window.executeCommand = async (commandId, command) => {
-    console.log('Exécution de la commande:', command);
-    
-    const outputDiv = document.getElementById(`output_${commandId}`);
-    const outputContent = outputDiv?.querySelector('.output-content');
-    const executeBtn = document.querySelector(`[onclick*="${commandId}"]`);
-    
-    if (!outputDiv || !outputContent) {
-      console.error('Éléments de sortie non trouvés pour:', commandId);
-      return;
-    }
-    
-    // Afficher la zone de sortie et désactiver le bouton
-    outputDiv.style.display = 'block';
-    if (executeBtn) {
-      executeBtn.disabled = true;
-      executeBtn.textContent = '⏳ Exécution...';
-    }
-    
-    // Vider la sortie précédente
-    outputContent.textContent = '';
-    
-    // Écouter les sorties en temps réel
-    const outputHandler = (event, data) => {
-      if (data.type === 'stdout') {
-        outputContent.textContent += data.data;
-      } else if (data.type === 'stderr') {
-        outputContent.textContent += `[ERREUR] ${data.data}`;
-      }
-      // Auto-scroll vers le bas
-      outputContent.scrollTop = outputContent.scrollHeight;
-    };
-    
-    window.electronAPI.onCommandOutput(outputHandler);
-    
-    try {
-      // Exécuter la commande
-      const result = await window.electronAPI.executeCommand(command);
-      
-      // Arrêter d'écouter les sorties
-      window.electronAPI.removeCommandOutputListener(outputHandler);
-      
-      // Afficher le résultat final
-      if (!result.success) {
-        outputContent.textContent += `\n[TERMINÉ] Code de sortie: ${result.code}`;
-        if (result.error) {
-          outputContent.textContent += `\nErreur: ${result.error}`;
-        }
-      } else {
-        outputContent.textContent += `\n[TERMINÉ] Commande exécutée avec succès`;
-      }
-      
-    } catch (error) {
-      console.error('Erreur lors de l\'exécution:', error);
-      outputContent.textContent += `\n[ERREUR] ${error.message}`;
-    } finally {
-      // Réactiver le bouton
-      if (executeBtn) {
-        executeBtn.disabled = false;
-        executeBtn.textContent = '▶ Exécuter';
-      }
-    }
-  };
-}
-
-// Fonction pour charger le CSS personnalisé (mode Electron et navigateur)
 function loadCustomCSS(cssContent) {
-  // Créer ou mettre à jour l'élément style pour le CSS de la présentation
   let styleEl = document.getElementById('presentation-style')
   if (!styleEl) {
     styleEl = document.createElement('style')
@@ -156,35 +65,20 @@ function loadCustomCSS(cssContent) {
     document.head.appendChild(styleEl)
   }
   styleEl.textContent = cssContent
-  
-  console.log('CSS de présentation chargé')
-}
-
-// Fonction pour charger le CSS de la présentation (mode navigateur uniquement)
-async function loadPresentationCSS() {
-  try {
-    const response = await fetch('/api/presentation-style.css')
-    if (response.ok) {
-      const cssContent = await response.text()
-      loadCustomCSS(cssContent)
-      console.log('CSS de présentation chargé (mode navigateur)')
-    } else {
-      console.warn('Aucun CSS de présentation trouvé, utilisation du fallback')
-    }
-  } catch (error) {
-    console.warn('Impossible de charger le CSS de présentation:', error)
-  }
 }
 </script>
 
 <style scoped>
-/* Conteneur complètement neutre */
 .slides-container {
   margin: 0;
   padding: 0;
   width: 100vw;
   height: 100vh;
   background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .loading, .error {
@@ -202,12 +96,22 @@ async function loadPresentationCSS() {
   border-color: #f44;
 }
 
-/* Conteneur de slide complètement neutre */
 .slide {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100%;
+  height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
 }
 </style>
 
