@@ -7,10 +7,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Chargement des slides
   loadSlides: () => ipcRenderer.invoke('load-slides'),
 
-  // Exécution de commandes
-  executeCommand: (command) => ipcRenderer.invoke('execute-command', command),
-  onCommandOutput: (callback) => ipcRenderer.on('command-output', callback),
-  removeCommandOutputListener: (callback) => ipcRenderer.removeListener('command-output', callback),
+  // Traitement des fichiers ZIP
+  processZipFile: (zipBuffer) => ipcRenderer.invoke('process-zip-file', zipBuffer),
+  cleanupTempPresentation: () => ipcRenderer.invoke('cleanup-temp-presentation'),
+  readTempFile: (fileName) => ipcRenderer.invoke('read-temp-file', fileName),
+  readTempDir: (subDir) => ipcRenderer.invoke('read-temp-dir', subDir),
 
   // Informations sur l'application
   getAppInfo: () => ipcRenderer.invoke('get-app-info'),
