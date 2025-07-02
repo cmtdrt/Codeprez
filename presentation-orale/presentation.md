@@ -39,29 +39,27 @@ CodePrez est une **application de présentation** moderne qui répond aux critè
 - **Frontend** : Vue.js 3, Vite, CSS moderne
 - **Backend** : Electron, Node.js, ES Modules
 - **Parsing** : MarkdownIt, Highlight.js
-- **Sécurité** : Sandboxing, validation des commandes
 
 ---
 
-# ⚡ Fonctionnalités Principales 
+#  Fonctionnalités Principales 
+##  Création de contenu
+- Markdown pour l'écriture
+- CSS personnalisé pour le style
+- Inclusion de code depuis des fichiers externes
+- Images et médias intégrés
 
-## 📝 Création de contenu
-- **Markdown** pour l'écriture
-- **CSS personnalisé** pour le style
-- **Inclusion de code** depuis des fichiers externes
-- **Images et médias** intégrés
+##  Présentation interactive
+- Navigation fluide entre slides
+- Mode plein écran
+- Contrôles clavier (flèches, Échap)
+- Vue d'ensemble des slides
 
-## 🎮 Présentation interactive
-- **Navigation** fluide entre slides
-- **Mode plein écran**
-- **Contrôles clavier** (flèches, Échap)
-- **Vue d'ensemble** des slides
-
-## 💻 Exécution de code
-- **Commandes bash** exécutables
-- **Sortie en temps réel**
-- **Sécurité renforcée** (whitelist, sandbox)
-- **Gestion des erreurs**
+##  Exécution de code
+- Commandes bash exécutables
+- Sortie en temps réel
+- Sécurité renforcée (whitelist, sandbox)
+- Gestion des erreurs
 
 ---
 
@@ -71,172 +69,130 @@ CodePrez est une **application de présentation** moderne qui répond aux critè
 
 ### **Main Process** - Processus principal
 ```javascript
-// Création de fenêtre sécurisée
-const mainWindow = new BrowserWindow({
-  width: 1280,
-  height: 800,
-  webPreferences: {
-    preload: path.join(__dirname, 'preload.js'),
-    contextIsolation: true,
-    nodeIntegration: false,
-    webSecurity: true
+function createWindow() {
+    console.log('>> Création de la fenêtre Electron');
+
+    mainWindow = new BrowserWindow({
+        width: 1280,
+        height: 800,
+        webPreferences: {
+            preload: path.join(__dirname, 'preload.js'),
+            contextIsolation: true,
+            nodeIntegration: false,
+            webSecurity: true // Sécurité activée
+        },
+        show: false // Ne pas afficher tant que ce n'est pas prêt
+    });
+
+    // Charger l'URL appropriée selon le mode
+    if (isDev) {
+        console.log('>> Mode développement - Chargement de Vite:', viteServerUrl);
+        mainWindow.loadURL(viteServerUrl);
+        // mainWindow.webContents.openDevTools(); // Décommenter pour debug
+    } else {
+        console.log('>> Mode production - Chargement du build');
+        const indexPath = path.join(__dirname, '../frontend/dist/index.html');
+        mainWindow.loadFile(indexPath);
+    }
+
+    // Afficher la fenêtre quand elle est prête
+    mainWindow.once('ready-to-show', () => {
+        console.log('>> Fenêtre prête à être affichée');
+        mainWindow.show();
+
+        // Envoyer un message à Vue pour confirmer la connexion
+        setTimeout(() => {
+            mainWindow.webContents.send('electron-ready', {
+                isDev,
+                platform: process.platform,
+                version: app.getVersion()
+            });
+        }, 1000);
+    });
+
+    // Gérer la fermeture de la fenêtre
+    mainWindow.on('closed', () => {
+        mainWindow = null;
+    });
+
+    return mainWindow;
+}
+
+```
+
+### **Nettoyage à la fermeture de l'application**
+```javascript
+    app.on('before-quit', () => {
+        if (fs.existsSync(tempPresentationPath)) {
+            fs.rmSync(tempPresentationPath, { recursive: true, force: true });
+            console.log(' Nettoyage final du dossier temporaire');
+        }
+    });
+```
+
+### **pour zipper**
+```javascript
+async function validate() {
+  try {
+    const zip = new JSZip()
+    // Ajoute chaque fichier sélectionné dans le zip, en respectant le chemin relatif
+    for (const file of selectedFiles.value) {
+      zip.file(file.webkitRelativePath, await file.arrayBuffer())
+    }
+
+    console.log(' Zip créé avec', selectedFiles.value.length, 'fichiers');
+
+    // Génère le zip comme ArrayBuffer
+    const zipArrayBuffer = await zip.generateAsync({ type: 'arraybuffer' })
+    const uint8Array = new Uint8Array(zipArrayBuffer)
+
+
+    // Demander à Electron d'ouvrir la boîte de dialogue d'enregistrement
+    const saveResult = await window.electronAPI.saveFile(
+      Array.from(new Uint8Array(zipArrayBuffer)),
+      parentFolderName.value ? `${parentFolderName.value}.codeprez` : 'presentation.codeprez'
+    );
+
+    if (saveResult.canceled) {
+      // L'utilisateur a annulé, on ne continue pas
+      return;
+    }
+
+    // Ensuite, tu peux envoyer le zip à Electron et router vers /slides
+    const result = await window.electronAPI.processZipFile(Array.from(uint8Array));
+    if (result.success) {
+      console.log('Présentation chargée avec succès:', result.slides);
+      router.push('/slides');
+    } else {
+      alert(`Erreur lors du chargement: ${result.error}`);
+    }
+  } catch (error) {
+    console.error('Erreur lors du traitement du fichier:', error);
+    alert('Erreur lors du traitement du fichier');
   }
-});
-```
-
-### **Communication IPC sécurisée**
-```javascript
-// preload.js - ContextBridge sécurisé
-contextBridge.exposeInMainWorld('electronAPI', {
-  loadSlides: () => ipcRenderer.invoke('load-slides'),
-  executeCommand: (cmd) => ipcRenderer.invoke('execute-command', cmd),
-  processZipFile: (buffer) => ipcRenderer.invoke('process-zip-file', buffer)
-});
-```
-
-### **Manipulation système avec Node.js**
-```javascript
-// Décompression d'archives .codeprez
-const zip = new AdmZip(Buffer.from(zipBuffer));
-zip.extractAllTo(tempPresentationPath, true);
-
-// Parsing Markdown avec MarkdownIt
-const md = new MarkdownIt({
-  html: true,
-  highlight: (str, lang) => hljs.highlight(str, { language: lang }).value
-});
-```
-
----
-
-# 💻 Démonstration - Commandes exécutables {#demo}
-
-## ✅ **Critère : Exécution de commandes (BONUS)**
-
-### Test système Windows
-```bash
-echo "CodePrez fonctionne sur Windows !"
-```
-
-### Vérification de l'environnement
-```bash
-node --version
-```
-
-### Affichage des fichiers du projet
-```bash
-dir
-```
-
-### Test multi-plateforme
-```bash
-systeminfo | findstr /C:"OS Name"
-```
-
----
-
-# 📝 Démonstration - Code de l'app {#code-demo}
-
-## ✅ **Critère : Affichage de blocs de code**
-
-### Frontend Vue.js - Navigation des slides
-
-[Code](./assets/demo.js#1-25)
-
-### Backend Electron - Gestion des fenêtres
-
-[Code](./assets/demo.js#26-40)
-
-### Parser Markdown - Inclusion de code externe
-
-[Code](./assets/demo.js#41-61)
-
----
-
-# 📝 Architecture Frontend - Vue.js 3
-
-## ✅ **Critère : Interface graphique professionnelle**
-
-### Composition API pour la réactivité
-```javascript
-// Gestion d'état réactive
-const slides = ref([])
-const presentationMode = ref(false)
-const currentSlideIndex = ref(0)
-
-// Computed properties
-const currentSlide = computed(() => 
-  slides.value[currentSlideIndex.value] || ''
-)
-
-// Gestion des événements clavier
-const handleKeydown = (event) => {
-  if (event.key === 'ArrowRight') nextSlide()
-  if (event.key === 'ArrowLeft') prevSlide()
-  if (event.key === 'Escape') exitPresentation()
 }
 ```
 
----
 
-# 🔐 Sécurité et Communication IPC
 
-## ✅ **Critère : Communication Main/Renderer sécurisée**
-
-### ContextBridge - Exposition sécurisée d'APIs
-```javascript
-// preload.js
-contextBridge.exposeInMainWorld('electronAPI', {
-  // Chargement sécurisé des slides
-  loadSlides: () => ipcRenderer.invoke('load-slides'),
-  
-  // Sélection de dossier avec dialogue natif
-  selectPresentationFolder: () => 
-    ipcRenderer.invoke('select-presentation-folder'),
-  
-  // Gestion des archives
-  processZipFile: (buffer) => 
-    ipcRenderer.invoke('process-zip-file', buffer)
-});
-```
-
-### Main Process - Gestionnaires IPC
-```javascript
-// main.js - Handlers sécurisés
-ipcMain.handle('load-slides', async () => {
-  // Validation du chemin
-  if (!currentPresentationPath) return { needSelection: true }
-  
-  // Parsing sécurisé
-  return await parseMarkdown(
-    path.join(currentPresentationPath, 'presentation.md'),
-    path.join(currentPresentationPath, 'config.json'),
-    path.join(currentPresentationPath, 'assets')
-  )
-});
-```
 
 ---
 
-# 🚀 Perspectives d'évolution {#perspectives}
+#  Perspectives d'évolution 
 
 ## Fonctionnalités futures
-- 🎨 **Thèmes** personnalisables
-- 📊 **Graphiques** interactifs
-- 🔄 **Synchronisation** en temps réel
-- 🌐 **Export web** statique
+-  Thèmes personnalisables
+-  Graphiques interactifs
+-  Synchronisation en temps réel
+-  Export web statique
 
 ## Améliorations techniques
-- ⚡ **Performance** optimisée
-- 🔒 **Sécurité** renforcée
-- 📱 **Mobile** responsive
-- 🧪 **Tests** automatisés
+-  Performance optimisée
+-  Sécurité renforcée
+-  Mobile responsive
+-  Tests automatisés
 
-## Écosystème
-- 📦 **Marketplace** de thèmes
-- 🔌 **Plugins** tiers
-- 📚 **Documentation** complète
-- 👥 **Communauté** active
+
 
 ---
 

@@ -33,7 +33,6 @@
 import { ref, computed, onMounted } from 'vue'
 import SlidesOverview from './SlidesOverview.vue'
 
-// Variables simples
 const slides = ref([])
 const loading = ref(true)
 const error = ref(null)
@@ -43,10 +42,7 @@ const isFullscreen = ref(false)
 const isElectronMode = ref(!!window?.electronAPI)
 const appInfo = ref(null)
 
-// Calcul simple
 const currentSlide = computed(() => slides.value[currentSlideIndex.value] || '')
-
-// Fonctions simples
 const startPresentation = () => {
   presentationMode.value = true
   currentSlideIndex.value = 0
@@ -83,29 +79,24 @@ const toggleFullscreen = () => {
   }
 }
 
-// Chargement simple
 const loadSlides = async () => {
   try {
     if (window?.electronAPI?.loadSlides) {
       const result = await window.electronAPI.loadSlides()
       slides.value = result.slides || []
       
-      // Charger le CSS de présentation
       if (result.customCSS) {
-        // Supprimer l'ancien style s'il existe
         const existingStyle = document.getElementById('presentation-css')
         if (existingStyle) {
           existingStyle.remove()
         }
         
-        // Ajouter le nouveau style avec un ID
         const style = document.createElement('style')
         style.id = 'presentation-css'
         style.textContent = result.customCSS
         document.head.appendChild(style)
       }
     } else {
-      // Mode navigateur - slides de test
       slides.value = [
         '<section><h1>Slide 1</h1><p>Test en mode navigateur</p></section>',
         '<section><h1>Slide 2</h1><p>Autre slide</p></section>'
@@ -118,7 +109,6 @@ const loadSlides = async () => {
   }
 }
 
-// Clavier simple
 const handleKeydown = (event) => {
   if (!presentationMode.value) return
   
@@ -131,9 +121,7 @@ const handleKeydown = (event) => {
   }
 }
 
-// Démarrage
 onMounted(async () => {
-  // Charger les informations de l'application si en mode Electron
   if (window?.electronAPI?.getAppInfo) {
     try {
       appInfo.value = await window.electronAPI.getAppInfo()
@@ -146,7 +134,6 @@ onMounted(async () => {
   document.addEventListener('keydown', handleKeydown)
 })
 
-// Gestion de l'exécution de commandes
 window.executeCommand = async (commandId, command) => {
   
   const outputElement = document.getElementById(`output_${commandId}`);
@@ -159,28 +146,23 @@ window.executeCommand = async (commandId, command) => {
     return;
   }
   
-  // Changer l'état du bouton
   if (executeBtn) {
     executeBtn.disabled = true;
     executeBtn.innerHTML = '<span class="btn-icon loading">⏳</span><span class="btn-text">En cours...</span>';
   }
   
-  // Afficher le statut
   if (statusElement) {
     statusElement.style.display = 'flex';
   }
   
-  // Préparer la sortie
   outputElement.style.display = 'block';
   contentElement.textContent = '';
   
   try {
     if (window?.electronAPI?.executeCommand) {
-      // Écouter les sorties en temps réel
       const outputListener = (event, outputData) => {
         if (outputData.type === 'stdout') {
           contentElement.textContent += outputData.data;
-          // Auto-scroll vers le bas
           contentElement.scrollTop = contentElement.scrollHeight;
         } else if (outputData.type === 'stderr') {
           contentElement.innerHTML += `<span style="color: #ff6b6b;">${outputData.data}</span>`;
@@ -190,23 +172,18 @@ window.executeCommand = async (commandId, command) => {
       
       window.electronAPI.onCommandOutput(outputListener);
       
-      // Exécuter la commande
       const result = await window.electronAPI.executeCommand(command);
       
-      // Nettoyer le listener
       window.electronAPI.removeCommandOutputListener(outputListener);
       
-      // Masquer le statut
       if (statusElement) {
         statusElement.style.display = 'none';
       }
       
-      // Afficher le résultat final
       if (result.success) {
         if (!contentElement.textContent.trim()) {
           contentElement.textContent = result.stdout || 'Commande exécutée avec succès (aucune sortie)';
         }
-        // Indiquer le succès
         if (executeBtn) {
           executeBtn.innerHTML = '<span class="btn-icon">✅</span><span class="btn-text">Terminé</span>';
           executeBtn.style.backgroundColor = '#51cf66';
@@ -215,14 +192,12 @@ window.executeCommand = async (commandId, command) => {
         if (!contentElement.innerHTML.includes('color: #ff6b6b')) {
           contentElement.innerHTML += `<span style="color: #ff6b6b;">Erreur (code ${result.code}):\n${result.stderr || 'Erreur inconnue'}</span>`;
         }
-        // Indiquer l'erreur
         if (executeBtn) {
           executeBtn.innerHTML = '<span class="btn-icon">❌</span><span class="btn-text">Erreur</span>';
           executeBtn.style.backgroundColor = '#ff6b6b';
         }
       }
       
-      // Afficher le bouton d'effacement
       if (clearBtn) {
         clearBtn.style.display = 'inline-flex';
       }
@@ -246,7 +221,6 @@ window.executeCommand = async (commandId, command) => {
     }
   }
   
-  // Réactiver le bouton après 2 secondes
   setTimeout(() => {
     if (executeBtn) {
       executeBtn.disabled = false;
@@ -258,7 +232,6 @@ window.executeCommand = async (commandId, command) => {
   }, 2000);
 };
 
-// Fonction pour effacer la sortie d'une commande
 window.clearCommandOutput = (commandId) => {
   const outputElement = document.getElementById(`output_${commandId}`);
   const contentElement = outputElement?.querySelector('.output-content');
@@ -275,7 +248,6 @@ window.clearCommandOutput = (commandId) => {
   }
 };
 
-// Fonction pour toggle l'affichage de la sortie
 window.toggleCommandOutput = (commandId) => {
   const outputElement = document.getElementById(`output_${commandId}`);
   const contentElement = outputElement?.querySelector('.output-content');
@@ -329,67 +301,65 @@ window.toggleCommandOutput = (commandId) => {
 
 .controls {
   position: fixed;
-  bottom: 30px; /* Augmenté l'espace du bas */
+  bottom: 30px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0,0,0,0.9); /* Plus opaque */
-  padding: 15px 20px; /* Plus de padding */
-  border-radius: 10px; /* Plus arrondi */
+  background: rgba(0,0,0,0.9);
+  padding: 15px 20px;
+  border-radius: 10px;
   display: flex;
-  gap: 15px; /* Plus d'espace entre les éléments */
+  gap: 15px;
   align-items: center;
   color: white;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3); /* Ombre pour plus de visibilité */
-  border: 2px solid rgba(255,255,255,0.1); /* Bordure subtile */
-  backdrop-filter: blur(10px); /* Effet de flou */
-  z-index: 1000; /* S'assurer qu'ils sont au-dessus */
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  border: 2px solid rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
 }
 
 .controls button {
   background: #007acc;
   color: white;
   border: none;
-  padding: 8px 15px; /* Plus de padding */
-  border-radius: 6px; /* Plus arrondi */
+  padding: 8px 15px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 16px; /* Taille de police plus grande */
-  font-weight: 600; /* Texte en gras */
-  transition: all 0.2s ease; /* Animation smooth */
-  min-width: 40px; /* Largeur minimale */
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  min-width: 40px;
 }
 
 .controls button:hover {
-  background: #005a9e; /* Couleur au survol */
-  transform: scale(1.05); /* Effet de zoom léger */
+  background: #005a9e;
+  transform: scale(1.05);
 }
 
 .controls span {
-  font-weight: 600; /* Compteur en gras */
-  color: #e2e8f0; /* Couleur plus claire */
-  min-width: 80px; /* Largeur minimale pour éviter le saut */
+  font-weight: 600;
+  color: #e2e8f0;
+  min-width: 80px;
   text-align: center;
 }
 </style>
 
 <style>
-/* CSS de fallback pour les sections */
 section {
   width: 100vw;
   height: 100vh;
-  padding: 100px 80px 180px 80px; /* Même padding que le CSS de présentation */
+  padding: 100px 80px 180px 80px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; /* Changé de center à flex-start */
-  overflow-y: auto; /* Ajouté pour le scroll */
+  justify-content: flex-start;
+  overflow-y: auto;
   overflow-x: hidden;
   position: relative;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); /* Ajouté le même fond */
-  color: #1f2937; /* Ajouté la même couleur de texte */
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Même police */
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  color: #1f2937;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Styles de fallback pour les titres */
 section h1 {
   font-size: 3.2rem;
   font-weight: 700;
@@ -426,12 +396,10 @@ section p {
   color: #1f2937;
 }
 
-/* Zone de sécurité pour le dernier élément */
 section > *:last-child {
   margin-bottom: 4rem;
 }
 
-/* Responsive pour le fallback */
 @media (max-width: 1200px) {
   section {
     padding: 60px 40px 160px 40px;

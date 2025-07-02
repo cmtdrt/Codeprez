@@ -18,19 +18,21 @@
 
 /* Style global des sections */
 section {
-  background: var(--gradient-primary) !important;
-  color: var(--light-text) !important;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-  padding: 100px 80px 180px 80px !important; /* Padding critique avec !important */
-  min-height: 100vh !important;
-  max-height: 100vh !important;
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: flex-start !important; /* Position critique avec !important */
-  position: relative !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  box-sizing: border-box !important;
+    background: var(--gradient-primary) !important;
+    color: var(--light-text) !important;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+    padding: 100px 80px 180px 80px !important;
+    /* Padding critique avec !important */
+    min-height: 100vh !important;
+    max-height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    /* Position critique avec !important */
+    position: relative !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
 }
 
 /* Effet de fond animé */
@@ -56,9 +58,11 @@ section>* {
 
 /* Titres principaux */
 h1 {
-    font-size: 3.2rem !important; /* Taille critique avec !important */
+    font-size: 3.2rem !important;
+    /* Taille critique avec !important */
     font-weight: 700 !important;
-    margin: 0 0 2rem 0 !important; /* Marges critiques avec !important */
+    margin: 0 0 2rem 0 !important;
+    /* Marges critiques avec !important */
     text-align: center !important;
     background: linear-gradient(45deg, #2563eb, #059669) !important;
     -webkit-background-clip: text !important;
@@ -66,7 +70,8 @@ h1 {
     background-clip: text !important;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
     line-height: 1.2 !important;
-    padding-top: 0 !important; /* Padding critique avec !important */
+    padding-top: 0 !important;
+    /* Padding critique avec !important */
 }
 
 /* Sous-titres */
@@ -129,81 +134,236 @@ ul li::before {
     font-weight: bold;
 }
 
-/* Code blocks */
+/* Code blocks - Style moderne et attrayant */
 pre {
-  background: var(--dark-bg);
-  border: 2px solid var(--primary-color);
-  border-radius: 12px;
-  padding: 3rem; /* Augmenté le padding */
-  margin: 2.5rem 0; /* Augmenté les marges */
-  overflow-x: auto;
-  font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
-  font-size: 1.4rem; /* Augmenté la taille de police */
-  line-height: 1.9; /* Améliorer l'espacement des lignes */
-  box-shadow: var(--shadow-lg);
-  color: #e2e8f0;
-  min-height: 320px; /* Augmenté la hauteur minimale */
-  max-width: 90%;
-  position: relative;
+    background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+    border: 2px solid transparent;
+    border-image: linear-gradient(135deg, #4a90e2, #059669, #8b5cf6) 1;
+    border-radius: 16px;
+    padding: 3rem;
+    margin: 3rem 0;
+    overflow-x: auto;
+    font-family: 'Fira Code', 'Monaco', 'Consolas', 'SF Mono', monospace;
+    font-size: 1.4rem;
+    line-height: 1.8;
+    color: #f1f5f9;
+    min-height: 320px;
+    max-width: 95%;
+    position: relative;
+    box-shadow:
+        0 20px 40px rgba(0, 0, 0, 0.3),
+        0 8px 16px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
 }
 
-/* Styles spéciaux pour les blocs bash */
+/* Effet au survol des blocs de code */
+pre:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 25px 50px rgba(0, 0, 0, 0.4),
+        0 12px 24px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* Header pour les blocs de code avec langage */
+pre::before {
+    content: 'CODE';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    height: 40px;
+    background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    align-items: center;
+    padding: 0 1.5rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Blocs JavaScript spécifiques */
+pre.language-javascript::before,
+pre[class*="language-javascript"]::before {
+    content: 'JAVASCRIPT';
+    background: linear-gradient(135deg, #f7df1e 0%, #dac000 100%);
+    color: #1a1a1a;
+}
+
+/* Blocs bash/shell spécifiques */
+pre.language-bash::before,
+pre[class*="language-bash"]::before,
+pre.language-shell::before,
+pre[class*="language-shell"]::before {
+    content: 'BASH / TERMINAL';
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+/* Style spécial pour les blocs bash */
 pre.language-bash,
 pre[class*="language-bash"] {
-  background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
-  border: 2px solid #4a90e2;
-  min-height: 350px; /* Encore plus grand pour bash */
-  font-size: 1.5rem; /* Police plus grande pour bash */
-  padding: 3.5rem; /* Plus de padding pour bash */
+    background: linear-gradient(145deg, #1a202c 0%, #2d3748 100%);
+    border-image: linear-gradient(135deg, #059669, #10b981, #34d399) 1;
+    min-height: 350px;
+    font-size: 1.5rem;
+    padding: 3.5rem;
 }
 
-/* Amélioration des commandes exécutables */
-.command-block {
-  margin: 3rem 0;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+/* Contenu du code avec padding pour éviter le chevauchement avec le header */
+pre code {
+    display: block;
+    margin-top: 2.5rem;
+    background: transparent !important;
+    color: inherit !important;
+    padding: 0 !important;
+    border: none !important;
+    font-size: inherit;
 }
 
-.command-block pre {
-  margin: 0;
-  border-radius: 0;
-  border: none;
+/* Points de decoration dans les coins */
+pre::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    right: 15px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #ef4444;
+    box-shadow:
+        -20px 0 0 #f59e0b,
+        -40px 0 0 #10b981;
 }
 
-/* Code inline */
+/* Code inline - Style moderne */
 code {
-    background: rgba(45, 55, 72, 0.8);
-    color: var(--primary-color);
-    padding: 0.4rem 0.8rem;
-    border-radius: 6px;
-    font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
-    font-size: 1rem;
-    border: 1px solid rgba(74, 144, 226, 0.3);
+    background: linear-gradient(135deg, rgba(74, 144, 226, 0.15), rgba(139, 92, 246, 0.15));
+    color: #4a90e2;
+    padding: 0.3rem 0.7rem;
+    border-radius: 8px;
+    font-family: 'Fira Code', 'Monaco', 'Consolas', 'SF Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 1px solid rgba(74, 144, 226, 0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
 }
 
-/* Coloration syntaxique */
+code:hover {
+    background: linear-gradient(135deg, rgba(74, 144, 226, 0.2), rgba(139, 92, 246, 0.2));
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Coloration syntaxique améliorée - Thème moderne */
 .hljs-keyword {
     color: #c678dd;
-    font-weight: bold;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(198, 120, 221, 0.3);
 }
 
 .hljs-string {
     color: #98c379;
+    font-style: normal;
 }
 
 .hljs-comment {
-    color: #5c6370;
+    color: #7c3aed;
     font-style: italic;
+    opacity: 0.8;
 }
 
 .hljs-function {
     color: #61dafb;
-    font-weight: bold;
+    font-weight: 600;
 }
 
 .hljs-variable {
     color: #e06c75;
+    font-weight: 500;
+}
+
+.hljs-number {
+    color: #d19a66;
+    font-weight: 600;
+}
+
+.hljs-title {
+    color: #e5c07b;
+    font-weight: 700;
+}
+
+.hljs-params {
+    color: #abb2bf;
+}
+
+.hljs-built_in {
+    color: #56b6c2;
+    font-weight: 600;
+}
+
+.hljs-attr {
+    color: #d19a66;
+    font-weight: 500;
+}
+
+.hljs-literal {
+    color: #f97316;
+    font-weight: 600;
+}
+
+.hljs-type {
+    color: #10b981;
+    font-weight: 600;
+}
+
+.hljs-operator {
+    color: #8b5cf6;
+    font-weight: 600;
+}
+
+.hljs-punctuation {
+    color: #94a3b8;
+}
+
+/* Amélioration des commandes exécutables */
+.command-block {
+    margin: 3rem 0;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow:
+        0 20px 40px rgba(0, 0, 0, 0.2),
+        0 8px 16px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+    border: 2px solid transparent;
+    border-image: linear-gradient(135deg, #4a90e2, #059669) 1;
+    transition: all 0.3s ease;
+}
+
+.command-block:hover {
+    transform: translateY(-3px);
+    box-shadow:
+        0 25px 50px rgba(0, 0, 0, 0.3),
+        0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.command-block pre {
+    margin: 0;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+}
+
+.command-block pre::before {
+    content: '⚡ COMMANDE EXÉCUTABLE';
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
 }
 
 .hljs-number {
@@ -229,23 +389,23 @@ code {
 
 /* Scrollbar pour les sections */
 section::-webkit-scrollbar {
-  width: 8px;
+    width: 8px;
 }
 
 section::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
 }
 
 section::-webkit-scrollbar-thumb {
-  background: var(--primary-color);
-  border-radius: 4px;
-  opacity: 0.7;
+    background: var(--primary-color);
+    border-radius: 4px;
+    opacity: 0.7;
 }
 
 section::-webkit-scrollbar-thumb:hover {
-  background: var(--secondary-color);
-  opacity: 1;
+    background: var(--secondary-color);
+    opacity: 1;
 }
 
 /* Scrollbar pour les blocs de code */
@@ -348,16 +508,16 @@ section:has(.command-block) {
 
 /* Slides avec beaucoup de code */
 section:has(pre) {
-  padding: 30px 40px;
-  justify-content: flex-start;
-  gap: 1rem;
+    padding: 30px 40px;
+    justify-content: flex-start;
+    gap: 1rem;
 }
 
 section:has(pre) pre {
-  flex-shrink: 0;
-  min-height: 200px;
-  max-height: 400px;
-  overflow-y: auto;
+    flex-shrink: 0;
+    min-height: 200px;
+    max-height: 400px;
+    overflow-y: auto;
 }
 
 /* Slide de conclusion */
@@ -446,7 +606,7 @@ section ol {
 /* Responsive design */
 @media (max-width: 1200px) {
     section {
-        padding: 60px 40px 160px 40px; /* Adapté pour les écrans moyens */
+        padding: 60px 40px 160px 40px;
     }
 
     h1 {
@@ -461,24 +621,48 @@ section ol {
     li {
         font-size: 1.1rem;
     }
-    
+
+    /* Blocs de code responsive - écrans moyens */
     pre {
         font-size: 1.2rem;
         padding: 2.5rem;
         min-height: 280px;
+        max-width: 98%;
+        margin: 2rem 0;
     }
-    
+
+    pre::before {
+        height: 35px;
+        font-size: 0.7rem;
+        padding: 0 1rem;
+    }
+
+    pre code {
+        margin-top: 2rem;
+    }
+
     pre.language-bash,
     pre[class*="language-bash"] {
         font-size: 1.3rem;
         min-height: 300px;
         padding: 3rem;
     }
+
+    /* Code inline responsive */
+    code {
+        font-size: 0.85rem;
+        padding: 0.25rem 0.6rem;
+    }
+
+    /* Command blocks responsive */
+    .command-block {
+        margin: 2.5rem 0;
+    }
 }
 
 @media (max-width: 768px) {
     section {
-        padding: 40px 20px 140px 20px; /* Adapté pour mobile */
+        padding: 40px 20px 140px 20px;
     }
 
     h1 {
@@ -493,19 +677,55 @@ section ol {
     li {
         font-size: 1rem;
     }
-    
+
+    /* Blocs de code mobile */
     pre {
         font-size: 1rem;
         padding: 2rem;
         min-height: 220px;
-        max-width: 95%;
+        max-width: 100%;
+        margin: 1.5rem 0;
+        border-radius: 12px;
     }
-    
+
+    pre::before {
+        height: 30px;
+        font-size: 0.6rem;
+        padding: 0 0.8rem;
+        border-radius: 12px 12px 0 0;
+    }
+
+    pre code {
+        margin-top: 1.5rem;
+    }
+
+    pre::after {
+        width: 8px;
+        height: 8px;
+        top: 6px;
+        right: 10px;
+        box-shadow:
+            -15px 0 0 #ef4444,
+            -30px 0 0 #f59e0b;
+    }
+
     pre.language-bash,
     pre[class*="language-bash"] {
         font-size: 1.1rem;
         min-height: 240px;
         padding: 2.5rem;
+    }
+
+    /* Code inline mobile */
+    code {
+        font-size: 0.8rem;
+        padding: 0.2rem 0.5rem;
+    }
+
+    /* Command blocks mobile */
+    .command-block {
+        margin: 2rem 0;
+        border-radius: 12px;
     }
 }
 
@@ -518,44 +738,54 @@ section ol {
 
 /* Indication de scroll pour les sections longues */
 section::after {
-  content: '';
-  position: absolute;
-  bottom: 80px; /* Plus haut pour éviter les contrôles */
-  right: 20px;
-  width: 20px;
-  height: 20px;
-  background: var(--primary-color);
-  border-radius: 50%;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
+    content: '';
+    position: absolute;
+    bottom: 80px;
+    /* Plus haut pour éviter les contrôles */
+    right: 20px;
+    width: 20px;
+    height: 20px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
 }
 
 section:hover::after {
-  opacity: 0.6;
+    opacity: 0.6;
 }
 
 /* Animation de scroll disponible */
 @keyframes scrollHint {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(5px); }
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(5px);
+    }
 }
 
 section::after {
-  animation: scrollHint 2s ease-in-out infinite;
+    animation: scrollHint 2s ease-in-out infinite;
 }
 
 /* Amélioration de la lisibilité du contenu scrollable */
 section {
-  scroll-behavior: smooth;
-  scroll-padding-top: 100px;
-  scroll-padding-bottom: 180px;
+    scroll-behavior: smooth;
+    scroll-padding-top: 100px;
+    scroll-padding-bottom: 180px;
 }
 
 /* Zone de sécurité pour le contenu */
-section > *:last-child {
-  margin-bottom: 4rem; /* Espace supplémentaire pour le dernier élément */
+section>*:last-child {
+    margin-bottom: 4rem;
+    /* Espace supplémentaire pour le dernier élément */
 }
+
 blockquote {
     border-left: 4px solid var(--accent-color);
     padding-left: 1.5rem;
