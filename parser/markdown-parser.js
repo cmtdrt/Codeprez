@@ -18,16 +18,11 @@ const md = new MarkdownIt({
 
 export function parseMarkdown(mdPath, configPath, assetsPath) {
     try {
-        console.log('>> Parsing Markdown:', mdPath);
-        console.log('>> Config path:', configPath);
-        console.log('>> Assets path:', assetsPath);
-
         // Lire le fichier Markdown
         const mdContent = fs.readFileSync(mdPath, 'utf8');
 
         // Diviser le contenu par slides (séparateur ---)
         const slideContents = mdContent.split(/^---$/gm).map(s => s.trim()).filter(s => s);
-        console.log('>> Slides trouvés:', slideContents.length);
 
         const slides = [];
 
@@ -37,9 +32,8 @@ export function parseMarkdown(mdPath, configPath, assetsPath) {
             try {
                 const configContent = fs.readFileSync(configPath, 'utf8');
                 config = JSON.parse(configContent);
-                console.log('>> Configuration chargée:', config);
             } catch (e) {
-                console.warn('>> Erreur lors du parsing de la config:', e.message);
+                console.warn('Erreur lors du parsing de la config:', e.message);
             }
         }
 
@@ -57,15 +51,11 @@ export function parseMarkdown(mdPath, configPath, assetsPath) {
 
         // Traiter chaque slide
         for (const slideContent of slideContents) {
-            console.log('>> Traitement du slide:', slideContent.substring(0, 100) + '...');
-
             let processedContent = slideContent;
 
             // Traiter les inclusions de code [Code](./assets/fichier.js#3-6)
             const codeIncludes = slideContent.match(/\[Code\]\(([^)]+)\)/g);
             if (codeIncludes) {
-                console.log('>> Inclusions de code trouvées:', codeIncludes);
-
                 for (const include of codeIncludes) {
                     const match = include.match(/\[Code\]\(([^#]+)(?:#(\d+)-(\d+))?\)/);
                     if (match) {
@@ -73,12 +63,9 @@ export function parseMarkdown(mdPath, configPath, assetsPath) {
                         const startLine = match[2] ? parseInt(match[2]) : null;
                         const endLine = match[3] ? parseInt(match[3]) : null;
 
-                        console.log('>> Inclusion de code:', filePath, 'lignes', startLine, '-', endLine);
-
                         try {
                             // Construire le chemin du fichier depuis le dossier de présentation
                             const fullPath = path.resolve(path.dirname(mdPath), filePath);
-                            console.log('>> Chemin complet du fichier de code:', fullPath);
 
                             const fileContent = fs.readFileSync(fullPath, 'utf-8');
                             const lines = fileContent.split('\n');
@@ -106,9 +93,8 @@ export function parseMarkdown(mdPath, configPath, assetsPath) {
                             const codeBlock = `\`\`\`${language}\n${codeToShow}\n\`\`\``;
                             processedContent = processedContent.replace(include, codeBlock);
 
-                            console.log('>> Code inclus avec succès:', language);
                         } catch (error) {
-                            console.error(`>> Erreur lors de l'inclusion du fichier ${filePath}:`, error);
+                            console.error(`Erreur lors de l'inclusion du fichier ${filePath}:`, error);
                             processedContent = processedContent.replace(include, `\`\`\`\nErreur: Impossible de charger ${filePath}\n\`\`\``);
                         }
                     }
@@ -131,17 +117,35 @@ export function parseMarkdown(mdPath, configPath, assetsPath) {
                 // Générer un ID unique pour cette commande
                 const commandId = 'cmd_' + Math.random().toString(36).substr(2, 9);
 
-                console.log('>> Commande bash détectée:', decodedCommand);
-
                 return `
                     <div class="command-block" data-command-id="${commandId}">
                         <div class="command-header">
-                            <code class="command-text">${decodedCommand}</code>
-                            <button class="execute-btn" onclick="executeCommand('${commandId}', '${decodedCommand.replace(/'/g, "\\'")}')">
-                                ▶ Exécuter
-                            </button>
+                            <div class="command-info">
+                                <span class="command-label">💻 Commande exécutable</span>
+                                <code class="command-text">${decodedCommand}</code>
+                            </div>
+                            <div class="command-controls">
+                                <button class="execute-btn" onclick="event.stopPropagation(); executeCommand('${commandId}', '${decodedCommand.replace(/'/g, "\\'")}')">
+                                    <span class="btn-icon">▶</span>
+                                    <span class="btn-text">Exécuter</span>
+                                </button>
+                                <button class="clear-btn" onclick="event.stopPropagation(); clearCommandOutput('${commandId}')" style="display: none;">
+                                    <span class="btn-icon">🗑</span>
+                                    <span class="btn-text">Effacer</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="command-status" id="status_${commandId}" style="display: none;">
+                            <div class="status-indicator">
+                                <div class="status-dot"></div>
+                                <span class="status-text">En cours d'exécution...</span>
+                            </div>
                         </div>
                         <div class="command-output" id="output_${commandId}" style="display: none;">
+                            <div class="output-header">
+                                <span class="output-title">📋 Sortie de la commande</span>
+                                <button class="output-collapse" onclick="event.stopPropagation(); toggleCommandOutput('${commandId}')">−</button>
+                            </div>
                             <pre class="output-content"></pre>
                         </div>
                     </div>
@@ -170,7 +174,6 @@ export function parseMarkdown(mdPath, configPath, assetsPath) {
         const cssPath = path.join(path.dirname(mdPath), 'style.css');
         if (fs.existsSync(cssPath)) {
             customCSS = fs.readFileSync(cssPath, 'utf8');
-            console.log('>> CSS chargé:', cssPath);
         }
 
         const result = {
@@ -182,7 +185,7 @@ export function parseMarkdown(mdPath, configPath, assetsPath) {
         return result;
 
     } catch (error) {
-        console.error('>> Erreur lors du parsing:', error);
+        console.error('Erreur lors du parsing:', error);
         throw error;
     }
 }
