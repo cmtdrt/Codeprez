@@ -137,9 +137,19 @@ async function validate() {
 
     console.log('📁 Zip généré, taille:', uint8Array.length);
 
-    // Envoyer au processus principal Electron
-    const result = await window.electronAPI.processZipFile(Array.from(uint8Array));
+    // Demander à Electron d'ouvrir la boîte de dialogue d'enregistrement
+    const saveResult = await window.electronAPI.saveFile(
+      Array.from(new Uint8Array(zipArrayBuffer)),
+      parentFolderName.value ? `${parentFolderName.value}.codeprez` : 'presentation.codeprez'
+    );
 
+    if (saveResult.canceled) {
+      // L'utilisateur a annulé, on ne continue pas
+      return;
+    }
+
+    // Ensuite, tu peux envoyer le zip à Electron et router vers /slides
+    const result = await window.electronAPI.processZipFile(Array.from(uint8Array));
     if (result.success) {
       console.log('Présentation chargée avec succès:', result.slides);
       router.push('/slides');

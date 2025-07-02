@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, protocol } from 'electron';
+import { app, BrowserWindow, ipcMain, protocol, dialog } from 'electron';
 import path from 'path';
 import { spawn } from 'child_process';
 import fs from 'fs';
@@ -322,6 +322,17 @@ app.whenReady().then(() => {
       fs.rmSync(tempPresentationPath, { recursive: true, force: true });
       console.log('🧹 Nettoyage final du dossier temporaire');
     }
+  });
+
+  ipcMain.handle('save-file', async (event, buffer, defaultPath) => {
+    const { canceled, filePath } = await dialog.showSaveDialog({
+      title: 'Enregistrer le fichier .codeprez',
+      defaultPath,
+      filters: [{ name: 'CodePrez', extensions: ['codeprez', 'zip'] }]
+    });
+    if (canceled || !filePath) return { canceled: true };
+    fs.writeFileSync(filePath, Buffer.from(buffer));
+    return { canceled: false, filePath };
   });
 });
 

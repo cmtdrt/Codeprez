@@ -30,7 +30,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Utilitaires
   isElectron: true,
-  platform: process.platform
+  platform: process.platform,
+
+  saveFile: (buffer, defaultPath) => ipcRenderer.invoke('save-file', buffer, defaultPath)
 });
 
 // Confirmation que l'API est disponible
