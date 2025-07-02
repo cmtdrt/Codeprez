@@ -131,7 +131,7 @@ app.whenReady().then(() => {
             }
 
             const selectedPath = result.filePaths[0];
-            
+
             // Vérifier que le dossier contient bien un fichier presentation.md
             const presentationFile = path.join(selectedPath, 'presentation.md');
             if (!fs.existsSync(presentationFile)) {

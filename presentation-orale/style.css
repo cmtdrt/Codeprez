@@ -2,18 +2,18 @@
 
 /* Variables CSS pour la cohérence */
 :root {
-  --primary-color: #4a90e2;
-  --secondary-color: #2563eb;
-  --accent-color: #059669;
-  --danger-color: #dc2626;
-  --warning-color: #d97706;
-  --dark-bg: #1f2937;
-  --darker-bg: #111827;
-  --light-text: #1f2937;
-  --muted-text: #6b7280;
-  --gradient-primary: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  --gradient-accent: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+    --primary-color: #4a90e2;
+    --secondary-color: #2563eb;
+    --accent-color: #059669;
+    --danger-color: #dc2626;
+    --warning-color: #d97706;
+    --dark-bg: #1f2937;
+    --darker-bg: #111827;
+    --light-text: #1f2937;
+    --muted-text: #6b7280;
+    --gradient-primary: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    --gradient-accent: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
 /* Style global des sections */
