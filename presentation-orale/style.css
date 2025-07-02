@@ -1,0 +1,346 @@
+/* CSS personnalisé pour la présentation orale CodePrez */
+
+/* Variables CSS pour la cohérence */
+:root {
+  --primary-color: #4a90e2;
+  --secondary-color: #2563eb;
+  --accent-color: #059669;
+  --danger-color: #dc2626;
+  --warning-color: #d97706;
+  --dark-bg: #1f2937;
+  --darker-bg: #111827;
+  --light-text: #1f2937;
+  --muted-text: #6b7280;
+  --gradient-primary: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  --gradient-accent: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Style global des sections */
+section {
+    background: var(--gradient-primary);
+    color: var(--light-text);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 60px 80px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Effet de fond animé */
+section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+        radial-gradient(circle at 20% 80%, rgba(74, 144, 226, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(5, 150, 105, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Contenu au-dessus du fond */
+section>* {
+    position: relative;
+    z-index: 1;
+}
+
+/* Titres principaux */
+h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    background: linear-gradient(45deg, #2563eb, #059669);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    line-height: 1.2;
+}
+
+/* Sous-titres */
+h2 {
+    font-size: 2.2rem;
+    font-weight: 600;
+    margin: 2rem 0 1rem 0;
+    color: var(--secondary-color);
+    border-left: 4px solid var(--accent-color);
+    padding-left: 1rem;
+}
+
+h3 {
+    font-size: 1.6rem;
+    font-weight: 500;
+    margin: 1.5rem 0 0.8rem 0;
+    color: var(--light-text);
+}
+
+/* Paragraphes */
+p {
+    font-size: 1.3rem;
+    line-height: 1.7;
+    margin-bottom: 1.2rem;
+    color: var(--light-text);
+    text-align: justify;
+}
+
+/* Listes */
+ul,
+ol {
+    font-size: 1.2rem;
+    line-height: 1.8;
+    margin: 1rem 0;
+    padding-left: 2rem;
+}
+
+li {
+    margin-bottom: 0.8rem;
+    color: var(--light-text);
+}
+
+/* Emojis dans les listes */
+li::marker {
+    font-size: 1.1em;
+}
+
+/* Listes avec puces personnalisées */
+ul li {
+    list-style: none;
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+ul li::before {
+    content: '▶';
+    position: absolute;
+    left: 0;
+    color: var(--accent-color);
+    font-weight: bold;
+}
+
+/* Code blocks */
+pre {
+    background: var(--dark-bg);
+    border: 2px solid var(--primary-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+    font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+    font-size: 1rem;
+    line-height: 1.5;
+    box-shadow: var(--shadow-lg);
+}
+
+code {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+    font-size: 0.9em;
+    color: var(--secondary-color);
+}
+
+/* Strong/Bold text */
+strong {
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+/* Liens */
+a {
+    color: var(--secondary-color);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+a:hover {
+    color: var(--light-text);
+    border-bottom-color: var(--accent-color);
+}
+
+/* Slide de titre spéciale */
+section:first-child {
+    background: var(--gradient-primary);
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+}
+
+section:first-child h1 {
+    font-size: 4.5rem;
+    margin-bottom: 2rem;
+}
+
+section:first-child p {
+    font-size: 1.5rem;
+    color: var(--muted-text);
+    max-width: 800px;
+    margin: 0 auto 1rem auto;
+}
+
+/* Slide de sommaire */
+section:nth-child(2) ol {
+    font-size: 1.6rem;
+    max-width: 600px;
+    margin: 2rem auto;
+}
+
+section:nth-child(2) li {
+    padding: 0.8rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Slide de démonstration */
+section:has(.command-block) {
+    padding: 40px 60px;
+}
+
+/* Slide de conclusion */
+section:last-child {
+    background: var(--gradient-accent);
+    text-align: center;
+    justify-content: center;
+}
+
+section:last-child h1 {
+    font-size: 4rem;
+    margin-bottom: 2rem;
+}
+
+/* Améliorations pour les blocs de commande */
+.command-block {
+    margin: 2rem 0;
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    transform: scale(1);
+    transition: transform 0.3s ease;
+}
+
+.command-block:hover {
+    transform: scale(1.02);
+}
+
+.command-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+}
+
+.command-label {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.execute-btn {
+    background: var(--gradient-accent) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+}
+
+.execute-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(72, 187, 120, 0.6);
+}
+
+/* Animations */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+section h1 {
+    animation: slideInUp 0.8s ease-out;
+}
+
+section h2 {
+    animation: slideInUp 0.8s ease-out 0.2s both;
+}
+
+section p,
+section ul,
+section ol {
+    animation: fadeIn 1s ease-out 0.4s both;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+    section {
+        padding: 40px 60px;
+    }
+
+    h1 {
+        font-size: 3rem;
+    }
+
+    h2 {
+        font-size: 1.8rem;
+    }
+
+    p,
+    li {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    section {
+        padding: 30px 40px;
+    }
+
+    h1 {
+        font-size: 2.5rem;
+    }
+
+    h2 {
+        font-size: 1.6rem;
+    }
+
+    p,
+    li {
+        font-size: 1rem;
+    }
+}
+
+/* Styles spéciaux pour les emojis */
+.emoji {
+    font-style: normal;
+    font-size: 1.2em;
+    margin-right: 0.5rem;
+}
+
+/* Amélioration des blockquotes si nécessaire */
+blockquote {
+    border-left: 4px solid var(--accent-color);
+    padding-left: 1.5rem;
+    margin: 1.5rem 0;
+    font-style: italic;
+    color: var(--muted-text);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+}
