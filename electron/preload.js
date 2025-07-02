@@ -6,6 +6,7 @@ console.log('✅ preload loaded');
 contextBridge.exposeInMainWorld('electronAPI', {
   // Chargement des slides
   loadSlides: () => ipcRenderer.invoke('load-slides'),
+  selectPresentationFolder: () => ipcRenderer.invoke('select-presentation-folder'),
 
   // Traitement des fichiers ZIP
   processZipFile: (zipBuffer) => ipcRenderer.invoke('process-zip-file', zipBuffer),
