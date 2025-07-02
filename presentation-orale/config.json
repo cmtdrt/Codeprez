@@ -1,6 +1,6 @@
 {
     "title": "CodePrez - Présentation de Projet",
-    "authors": "emeric et clement",
+    "authors": "Emeric et Clément",
     "duration": 15,
     "description": "Présentation de l'application CodePrez - Un outil de présentation moderne avec Electron et Vue.js"
 }

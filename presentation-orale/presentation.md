@@ -11,9 +11,7 @@
 
 ---
 
-# 🎯 Présentation du projet {#presentation}
-
-## Qu'est-ce que CodePrez ?
+# 🎯 Présentation du projet
 
 CodePrez est une **application de présentation** moderne qui répond aux critères suivants :
 
@@ -51,6 +49,8 @@ CodePrez est une **application de présentation** moderne qui répond aux critè
 - Mode plein écran
 - Contrôles clavier (flèches, Échap)
 - Vue d'ensemble des slides
+
+
 
 ##  Exécution de code
 - Commandes bash exécutables
@@ -114,7 +114,7 @@ function createWindow() {
 }
 
 ```
-
+---
 
 ### **Nettoyage à la fermeture de l'application**
 ```javascript
@@ -189,20 +189,17 @@ async function validate() {
 ```
 
 ---
-
-##  **amélioration possibles**
-
 ## Fonctionnalités futures
 -  Thèmes personnalisables
 -  Graphiques interactifs
--  Synchronisation en temps réel
--  Export web statique
 - Packaging de l'application pour distribution
+- Preview des slides fonctionnelles
 
 ## Améliorations techniques
 -  Performance optimisée
 -  Mobile responsive
 -  Tests automatisés
+
 
 
 ---
@@ -236,4 +233,4 @@ async function validate() {
 # 🎬 Fin de la présentation
 **🚀 Passons à la démonstration pratique et aux questions !**
 
-*Merci d'avoir suivi cette présentation de 15 minutes*
+*Merci d'avoir suivi cette présentation*

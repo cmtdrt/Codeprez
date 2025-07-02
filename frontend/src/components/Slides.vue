@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="app">
     <!-- Vue d'ensemble avec SlidesOverview -->
@@ -18,7 +19,7 @@
     <!-- Présentation simple -->
     <div v-else class="presentation" @click="nextSlide">
       <div v-html="currentSlide"></div>
-      
+
       <div class="controls">
         <button @click.stop="prevSlide">←</button>
         <span>{{ currentSlideIndex + 1 }} / {{ slides.length }}</span>
@@ -84,13 +85,13 @@ const loadSlides = async () => {
     if (window?.electronAPI?.loadSlides) {
       const result = await window.electronAPI.loadSlides()
       slides.value = result.slides || []
-      
+
       if (result.customCSS) {
         const existingStyle = document.getElementById('presentation-css')
         if (existingStyle) {
           existingStyle.remove()
         }
-        
+
         const style = document.createElement('style')
         style.id = 'presentation-css'
         style.textContent = result.customCSS
@@ -111,7 +112,7 @@ const loadSlides = async () => {
 
 const handleKeydown = (event) => {
   if (!presentationMode.value) return
-  
+
   if (event.key === 'ArrowRight' || event.key === ' ') {
     nextSlide()
   } else if (event.key === 'ArrowLeft') {
@@ -129,35 +130,35 @@ onMounted(async () => {
       console.warn('Impossible de charger les infos de l\'application:', e)
     }
   }
-  
+
   loadSlides()
   document.addEventListener('keydown', handleKeydown)
 })
 
 window.executeCommand = async (commandId, command) => {
-  
+
   const outputElement = document.getElementById(`output_${commandId}`);
   const statusElement = document.getElementById(`status_${commandId}`);
   const contentElement = outputElement?.querySelector('.output-content');
   const executeBtn = document.querySelector(`[data-command-id="${commandId}"] .execute-btn`);
   const clearBtn = document.querySelector(`[data-command-id="${commandId}"] .clear-btn`);
-  
+
   if (!outputElement || !contentElement) {
     return;
   }
-  
+
   if (executeBtn) {
     executeBtn.disabled = true;
     executeBtn.innerHTML = '<span class="btn-icon loading">⏳</span><span class="btn-text">En cours...</span>';
   }
-  
+
   if (statusElement) {
     statusElement.style.display = 'flex';
   }
-  
+
   outputElement.style.display = 'block';
   contentElement.textContent = '';
-  
+
   try {
     if (window?.electronAPI?.executeCommand) {
       const outputListener = (event, outputData) => {
@@ -169,17 +170,17 @@ window.executeCommand = async (commandId, command) => {
           contentElement.scrollTop = contentElement.scrollHeight;
         }
       };
-      
+
       window.electronAPI.onCommandOutput(outputListener);
-      
+
       const result = await window.electronAPI.executeCommand(command);
-      
+
       window.electronAPI.removeCommandOutputListener(outputListener);
-      
+
       if (statusElement) {
         statusElement.style.display = 'none';
       }
-      
+
       if (result.success) {
         if (!contentElement.textContent.trim()) {
           contentElement.textContent = result.stdout || 'Commande exécutée avec succès (aucune sortie)';
@@ -197,11 +198,11 @@ window.executeCommand = async (commandId, command) => {
           executeBtn.style.backgroundColor = '#ff6b6b';
         }
       }
-      
+
       if (clearBtn) {
         clearBtn.style.display = 'inline-flex';
       }
-      
+
     } else {
       contentElement.innerHTML = '<span style="color: #ffd43b;">⚠️ Exécution de commandes non disponible en mode navigateur</span>';
       if (statusElement) {
@@ -210,17 +211,17 @@ window.executeCommand = async (commandId, command) => {
     }
   } catch (error) {
     contentElement.innerHTML = `<span style="color: #ff6b6b;">❌ Erreur: ${error.message}</span>`;
-    
+
     if (statusElement) {
       statusElement.style.display = 'none';
     }
-    
+
     if (executeBtn) {
       executeBtn.innerHTML = '<span class="btn-icon">❌</span><span class="btn-text">Erreur</span>';
       executeBtn.style.backgroundColor = '#ff6b6b';
     }
   }
-  
+
   setTimeout(() => {
     if (executeBtn) {
       executeBtn.disabled = false;
@@ -236,7 +237,7 @@ window.clearCommandOutput = (commandId) => {
   const outputElement = document.getElementById(`output_${commandId}`);
   const contentElement = outputElement?.querySelector('.output-content');
   const clearBtn = document.querySelector(`[data-command-id="${commandId}"] .clear-btn`);
-  
+
   if (contentElement) {
     contentElement.textContent = '';
   }
@@ -252,7 +253,7 @@ window.toggleCommandOutput = (commandId) => {
   const outputElement = document.getElementById(`output_${commandId}`);
   const contentElement = outputElement?.querySelector('.output-content');
   const toggleBtn = outputElement?.querySelector('.output-collapse');
-  
+
   if (contentElement && toggleBtn) {
     if (contentElement.style.display === 'none') {
       contentElement.style.display = 'block';
@@ -278,8 +279,8 @@ window.toggleCommandOutput = (commandId) => {
   text-align: center;
 }
 
-.overview h1 { 
-  color: white; 
+.overview h1 {
+  color: white;
 }
 
 .overview button, .slide-item {
@@ -404,7 +405,7 @@ section > *:last-child {
   section {
     padding: 60px 40px 160px 40px;
   }
-  
+
   section h1 {
     font-size: 2.8rem;
   }
@@ -414,7 +415,7 @@ section > *:last-child {
   section {
     padding: 40px 20px 140px 20px;
   }
-  
+
   section h1 {
     font-size: 2.2rem;
   }

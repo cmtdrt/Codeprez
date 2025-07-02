@@ -115,17 +115,10 @@ const canValidate = computed(() =>
 )
 
 async function validate() {
-
-  if (!window.electronAPI) {
-      alert('Erreur: API Electron non disponible. Vérifiez que l\'application est lancée dans Electron.');
-      return;
-  }
-
   try {
     const zip = new JSZip()
     // Ajoute chaque fichier sélectionné dans le zip, en respectant le chemin relatif
     for (const file of selectedFiles.value) {
-      console.log("file", file)
       zip.file(file.webkitRelativePath, await file.arrayBuffer())
     }
 
@@ -135,7 +128,6 @@ async function validate() {
     const zipArrayBuffer = await zip.generateAsync({ type: 'arraybuffer' })
     const uint8Array = new Uint8Array(zipArrayBuffer)
 
-    console.log('📁 Zip généré, taille:', uint8Array.length);
 
     // Demander à Electron d'ouvrir la boîte de dialogue d'enregistrement
     const saveResult = await window.electronAPI.saveFile(

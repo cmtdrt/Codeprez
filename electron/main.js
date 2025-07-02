@@ -277,7 +277,7 @@ app.whenReady().then(() => {
     // Gestionnaires IPC pour les fichiers ZIP
     ipcMain.handle('process-zip-file', async (event, zipBuffer) => {
         try {
-            // Créer le dossier temporaire
+            // Vérifier si un dossier temporaire existe déjà, si oui le supprimer
             if (fs.existsSync(tempPresentationPath)) {
                 fs.rmSync(tempPresentationPath, { recursive: true, force: true });
             }
@@ -372,7 +372,7 @@ app.whenReady().then(() => {
     app.on('before-quit', () => {
         if (fs.existsSync(tempPresentationPath)) {
             fs.rmSync(tempPresentationPath, { recursive: true, force: true });
-            console.log('🧹 Nettoyage final du dossier temporaire');
+            console.log('🧹 Nettoyage du dossier temporaire');
         }
     });
 
