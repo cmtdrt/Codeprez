@@ -1,14 +1,13 @@
 # Sommaire
 
 1. 📋 **Sommaire** - Vue d'ensemble
-2. 🎯 **Présentation du projet** - Objectifs & Ce que fait l'app
+2. 🎯 **Présentation du projet** - Objectifs & Fonctionnalités
 3. 🔧 **Technologies utilisées** - Stack technique
-4. 💻 **Démonstration** - Commandes exécutables
-5. 📝 **Démonstration** - Code de l'app sur plusieurs slides
-6. 🚀 **Perspectives d'évolution** - Futur du projet
-7. 🎓 **Apprentissages & Défis** - Retour d'expérience
-8. 🙏 **Remerciements** - Conclusion
-9. 🎬 **Fin** - Transition vers questions
+4. 💻 **Architecture Electron** - Code de l'application
+5. � **Améliorations possibles** - Futur du projet
+6. ✨ **Points forts** - Avantages du projet
+7. 🎓 **Apprentissages & Défis** - Compétences acquises
+8. 🎬 **Fin** - Questions et démonstration
 
 ---
 
@@ -29,16 +28,14 @@ CodePrez est une **application de présentation** moderne qui répond aux critè
 - Interface desktop **professionnelle**
 - Compatibilité **multi-plateforme** (Windows/Mac/Linux)
 - Architecture **sécurisée** avec Electron
-- **Package distributable** de l'application
 
 ---
-
-
 
 ## Technologies clés
 - **Frontend** : Vue.js 3, Vite, CSS moderne
 - **Backend** : Electron, Node.js, ES Modules
 - **Parsing** : MarkdownIt, Highlight.js
+- **Compression**: adm-zip
 
 ---
 
@@ -58,12 +55,10 @@ CodePrez est une **application de présentation** moderne qui répond aux critè
 ##  Exécution de code
 - Commandes bash exécutables
 - Sortie en temps réel
-- Sécurité renforcée (whitelist, sandbox)
 - Gestion des erreurs
 
 ---
 
-# 🔧 Technologies Utilisées {#technologies}
 
 ## Architecture Electron
 
@@ -120,6 +115,7 @@ function createWindow() {
 
 ```
 
+
 ### **Nettoyage à la fermeture de l'application**
 ```javascript
     app.on('before-quit', () => {
@@ -129,8 +125,9 @@ function createWindow() {
         }
     });
 ```
+---
 
-### **pour zipper**
+### **pour Zipper**
 ```javascript
 async function validate() {
   try {
@@ -173,149 +170,70 @@ async function validate() {
 }
 ```
 
+---
+### **pour dézipper:**
+```javascript
+ ipcMain.handle('process-zip-file', async (event, zipBuffer) => {
+        try {
+            // Vérifier si un dossier temporaire existe déjà, si oui le supprimer
+            if (fs.existsSync(tempPresentationPath)) {
+                fs.rmSync(tempPresentationPath, { recursive: true, force: true });
+            }
+            // Créer le dossier temporaire
+            fs.mkdirSync(tempPresentationPath, { recursive: true });
 
+            // Dézipper avec AdmZip
+            const zip = new AdmZip(Buffer.from(zipBuffer));
+            zip.extractAllTo(tempPresentationPath, true);
 
+```
 
 ---
 
-#  Perspectives d'évolution 
+##  **amélioration possibles**
 
 ## Fonctionnalités futures
 -  Thèmes personnalisables
 -  Graphiques interactifs
 -  Synchronisation en temps réel
 -  Export web statique
+- Packaging de l'application pour distribution
 
 ## Améliorations techniques
 -  Performance optimisée
--  Sécurité renforcée
 -  Mobile responsive
 -  Tests automatisés
 
 
-
 ---
 
-# ✨ Points forts du projet
+#  Points forts du projet
 
-## 🎯 Innovation
 - **Exécution de code** dans les slides
-- **Architecture modulaire** moderne
 - **Expérience utilisateur** soignée
-
-## 🔧 Technique
-- **ES Modules** natifs
-- **Sécurité** par design
-- **Performance** optimisée
-
-## 🚀 Pratique
 - **Facilité d'utilisation**
 - **Portabilité** (.codeprez)
 - **Flexibilité** de contenu
 
 ---
 
-# 🎓 Apprentissages & Défis {#apprentissages}
+# 🎓 Apprentissages & Défis
 
-## ✅ **Compétences acquises selon le barème**
 
 ### **Mise en place de fenêtres Electron**
-- Configuration des **webPreferences** sécurisées
 - Gestion des **dialogues natifs** (sélection de fichiers/dossiers)
 - **Menus contextuels** et raccourcis clavier
-- **Packaging** de l'application pour distribution
+- **Utilisation IPC** 
 
-### **Communication IPC sécurisée**
-- **ContextBridge** pour isoler le contexte
-- **Preload scripts** pour l'exposition d'APIs
-- **IPC handlers** asynchrones dans le main process
-- **Validation** et sanitisation des données
-
-### **Manipulation système avec Node.js**
+### **Traitement des données avec Node.js**
 - **Compression/décompression** d'archives .codeprez
 - **Parsing Markdown** avec MarkdownIt et Highlight.js
-- **Gestion des fichiers** et chemins multi-plateformes
-- **Exécution sécurisée** de commandes système
+- **Gestion des fichiers et dossier**
+- **Exécution de commandes**
 
-## 🚧 **Défis techniques relevés**
-
-### **Migration ES Modules**
-- Conversion complète vers **import/export**
-- Résolution des **incompatibilités** CommonJS/ESM
-- **Configuration** Electron pour ES modules
-
-### **Sécurité applicative**
-- **Sandboxing** des commandes exécutables
-- **Validation** des entrées utilisateur
-- **Isolation** des processus Electron
 
 ---
-
-# ❓ Questions & Discussion {#questions}
-
-## Questions possibles
-- 🔒 Comment gérez-vous la **sécurité** ?
-- ⚡ Quelles sont les **performances** ?
-- 🔄 Comment **étendre** le projet ?
-- 📦 Déploiement et **distribution** ?
-
-## Démonstration live
-- Création d'une **nouvelle présentation**
-- **Exécution** de commandes
-- **Navigation** dans l'interface
-
----
-
-# 🙏 Remerciements {#remerciements}
-
-## ✅ **Projet complété selon le barème**
-
-### **Complétion - Toutes les fonctionnalités**
-- ✅ **Création de fichier CodePrez** via interface graphique
-- ✅ **Ouverture d'archives** .codeprez existantes  
-- ✅ **Navigation** fluide entre diapositives
-- ✅ **Affichage de code** avec coloration syntaxique
-- ✅ **Code externe** inclus depuis fichiers assets
-- ✅ **Packaging** de l'application
-- ✅ **Exécution de commandes** *(BONUS)*
-
-### **Compétences déployées**
-- ✅ **Fenêtres Electron** avec dialogues natifs
-- ✅ **Communication IPC** sécurisée (ContextBridge)
-- ✅ **Manipulation Node.js** (archives, parsing)
-
-### **Qualité du code**
-- ✅ **Propreté** et nomenclature KISS/DRY
-- ✅ **Multi-plateforme** Windows/Mac/Linux
-- ✅ **UX professionnelle** avec design moderne
-
-## 🎯 **Soutenance sur le projet lui-même (BONUS)**
-*Cette présentation fonctionne avec CodePrez !*
-
-### Merci pour votre attention ! 
-**Questions et démonstration interactive**
-
----
-
-# 🎬 Fin de la présentation {#fin}
-
-## 🎤 **Place aux questions !**
-
-### **Domaines d'expertise démontrés :**
-- 🔧 **Electron** - Architecture desktop sécurisée
-- ⚛️ **Vue.js 3** - Interface réactive moderne  
-- 🔒 **Node.js** - Manipulation système et sécurité
-- 📦 **Packaging** - Distribution multi-plateforme
-- 🎨 **UX/UI** - Design professionnel
-
-### **Prêt pour la démonstration interactive**
-- Navigation complète de l'application
-- Création et ouverture d'archives .codeprez
-- Exécution de commandes en temps réel
-- Affichage de code avec inclusion externe
-
----
-
+# 🎬 Fin de la présentation
 **🚀 Passons à la démonstration pratique et aux questions !**
 
 *Merci d'avoir suivi cette présentation de 15 minutes*
