@@ -58,7 +58,7 @@ waitForVite().then(() => {
 
   // Utiliser le chemin direct vers Electron sur Windows
   const electronCmd = process.platform === 'win32' ? '.\\node_modules\\.bin\\electron.cmd' : 'npx';
-  const electronArgs = process.platform === 'win32' ? ['electron/main.cjs'] : ['electron', 'electron/main.cjs'];
+  const electronArgs = process.platform === 'win32' ? ['electron/main.js'] : ['electron', 'electron/main.js'];
 
   const electron = spawn(electronCmd, electronArgs, {
     shell: true,
